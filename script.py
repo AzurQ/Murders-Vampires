@@ -184,7 +184,6 @@ class vampire:
 
 
     # Permet de savoir si un joueur peut agir à son tour
-    # Permet également de savoir combien d'attaques il peut effectuer
     # Cela permet de prendre en compte le fait qu'un perso peut se faire immobiliser
         # avant son tour de jeu dans un même round   
     def agir(self):
