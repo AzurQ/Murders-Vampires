@@ -94,8 +94,7 @@ class vampire:
 
         
         # Cas si Crowe a une arme de sang (attaquant)
-        if isinstance(self,derniere_main):
-            if self.arme_valeur is not None:
+        if isinstance(self,derniere_main) and self.arme_valeur is not None:
                 if avantage == 0 :
                     dommages = max(np.random.binomial(self.valeur_attaque,p), self.arme_valeur)
                 elif avantage > 0 :
@@ -174,7 +173,7 @@ class vampire:
     def etat(self):
         if self.ps ==0:
             print(self.nom + " est décédé")
-        elif self.ps > 0.75*self.ps0:
+        elif self.ps > 0.25*self.ps0:
             print(self.nom + " est encore en bonne forme")
         else:
             print(self.nom + " est mal en point")
@@ -185,6 +184,7 @@ class vampire:
 
 
     # Permet de savoir si un joueur peut agir à son tour
+    # Permet également de savoir combien d'attaques il peut effectuer
     # Cela permet de prendre en compte le fait qu'un perso peut se faire immobiliser
         # avant son tour de jeu dans un même round   
     def agir(self):
@@ -240,8 +240,7 @@ class vampire:
                     self.desengage()
             else:
                 self.fuite -=1
-                
-      
+
 
     # Faire le regain de PA, sera utilisé dans une fonction globale
     def regain(self):
@@ -1450,15 +1449,26 @@ def initiative():
     
     
     
-    init=[np.random.binomial(perso.initiative,p) for perso in liste]
-        
+    init=[np.random.binomial(perso.initiative,p) for perso in liste]   
         
     joueurs = [perso.nom for perso in liste]
-    ordre=[perso for _,perso in sorted(zip(init,joueurs),reverse=True)]
+
+    ordre=[(perso,init_valeur) for init_valeur,perso in sorted(zip(init,joueurs),reverse=True)]
+
         
     print("L'ordre d'initiative est le suivant :")
-    for perso in ordre :
-        print(perso)
+    print("Syntaxe : Perso (nombre d'attaques)")
+    print("")
+    
+    for (perso,init_valeur) in ordre :
+        if isinstance(perso,dressmond):
+            nombre_attaques=1
+        else:
+            nombre_attaques=round((3/4)*exp(init_valeur/4))
+        print(perso + " (" + str(nombre_attaques) + ")")
+        
+    print("")
+    print("MJ : Ne pas oublier d'utiliser la commande agir() pour chaque personnage")
     
 
 # Eteindre la lampe à UV
@@ -1685,124 +1695,124 @@ def save():
 
 
 
-#""" Initialisation de la murder """
-## Ne faire tourner cette section qu'une seule fois, à l'heure de début de la murder 
-## À laisser en commentaires
-# 
-#p = 0.6 # coefficient p de la loi binomiale
-#pa_max = 20
-#
-#       
-#Vania = mezsaros(nom="Vania", ps=500, ps0=500, pa=pa_max, groupe="AB", classe=4, 
-#                generation=3, rang=1, vitalite=5, valeur_attaque=5, initiative=15, 
-#                infecte = True, date_infection = None, date_mort=None, force_infection=0,stun= 0, 
-#                stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None)
-#
-#Alec = demi(nom="Alec", ps=30, ps0=30, pa=pa_max, groupe="B", classe=0.5, 
-#                generation=7, rang=7, vitalite=1, valeur_attaque=4, initiative=2, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0, 
-#                stun = 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None,
-#                munitions = 9, batterie = 300, switch= False, prelevements = [1,2,3,4,5,6,7,8,9,10])
-#
-#Crowe = derniere_main(nom="Crowe", ps=80, ps0=80, pa=pa_max, groupe="O", classe=4, 
-#                generation=5, rang=5, vitalite=3, valeur_attaque=8, initiative=10, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None,
-#                arme_valeur = None)
-#
-#Aleister = simonis(nom="Aleister", ps=130, ps0=130, pa=pa_max, groupe="AB", classe=0, 
-#                generation=4, rang=4, vitalite=4, valeur_attaque=8, initiative=6, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                transexistence=[], target = None)
-#
-#Min = chrysalide(nom="Min", ps=150, ps0=150, pa=pa_max, groupe="O", classe=2, 
-#                generation=5, rang=5, vitalite=5, valeur_attaque=6, initiative=8, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, antidote=True,
-#                c4_est = True, c4_ouest = True, c4_vlad=True)
-#
-#Dressmond = dressmond(nom="Dressmond", ps=1000, ps0=1000, pa=pa_max, groupe="A", classe=1, 
-#                generation=4, rang=1, vitalite=10, valeur_attaque=30, 
-#                initiative=4, infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                valeur_attaque0=30,initiative0=4, niveau = 0, mode=False, conso = 0, drogue =2, elimination_virus = 0)
-#
-#Loup = loup(nom="Loup",ps=0, ps0=0, pa=0, groupe="AB", classe=4, 
-#                generation=4, rang=4, vitalite=0, valeur_attaque=int(0/10), initiative=int(0/10), 
-#                infecte = True, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                existe = False)
-#
-#
-#Serviteurs = pnj(nom="Serviteurs", ps=400, ps0=400, pa=pa_max, groupe="B", classe=0, 
-#                generation=6, rang=6, vitalite=3, valeur_attaque=3, initiative=3, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                ps_indiv = 30, combat = False)
-#
-#Gardes = pnj(nom="Gardes", ps=750, ps0=750, pa=pa_max, groupe="B", classe=2, 
-#                generation=6, rang=6, vitalite=5, valeur_attaque=5, initiative=5, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                ps_indiv = 50, combat = False)
-#
-#
-#Demis = pnj(nom="Demis", ps=850, ps0=550, pa=pa_max, groupe="B", classe=0.5, 
-#                generation=7, rang=7, vitalite=2, valeur_attaque=3, initiative=3, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                ps_indiv = 17, combat = False)
-#
-#
-#Section1 = pnj(nom="Section 1", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1, 
-#                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                ps_indiv = 30, combat = False)
-#
-#Section2 = pnj(nom="Section 2", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1, 
-#                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                ps_indiv = 30, combat = False)
-#
-#Section3 = pnj(nom="Section 3", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1, 
-#                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9, 
-#                infecte = False, date_infection = None, date_mort=None, force_infection=0,
-#                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
-#                ps_indiv = 30, combat = False)
-#
-#
-#liste_pnj = [Serviteurs, Gardes, Demis, Section1, Section2, Section3]
-#
-#pnj_temp_num=0
-## Variable pour détacher un pnj
-#
-#poches = [[1, "Bureau", "B", 0, 1, ""],[1, "Frigo", "B", 0, 0, ""],[2, "Frigo", "B", 0, 0, ""],[3, "Frigo", "B", 0, 0, ""],[4, "Frigo", "B", 0, 0, ""],[1, "Frigo", "A", 0, 0, ""],[2, "Frigo", "A", 0, 0, ""],[1, "Frigo", "O", 0, 0, ""],[1, "Alec", "O", 1, 0, ""],[2, "Alec", "O", 2, 0, ""]]
-## poches de sang : 
-#    # Numéro dans la localisation
-#    # Localisation
-#    # Groupe
-#    # Contaminé par le virus (2 ou 1 ou 0) (2 est la dose super forte d'Alec)
-#    # Contaminé par la drogue (1 ou 0)
-#    # Autres notes, commentaires, ...
-#
-#Lance_pouvoirs = True 
-## La lance possède ses pouvoirs
-#
-#
-#
-#temps_debut = time.localtime()
-#t= time.mktime(temps_debut)
-#heure_debut = temps_debut.tm_hour
-#minute_debut = temps_debut.tm_min
-#
-#print("Début de la murder : " + heure_debut.__str__() + ":" + minute_debut.__str__())
-#
-#
-#
-#""" Fin de l'initialisation """
+""" Initialisation de la murder """
+# Ne faire tourner cette section qu'une seule fois, à l'heure de début de la murder 
+# À laisser en commentaires
+ 
+p = 0.6 # coefficient p de la loi binomiale
+pa_max = 20
+
+       
+Vania = mezsaros(nom="Vania", ps=500, ps0=500, pa=pa_max, groupe="AB", classe=4, 
+                generation=3, rang=1, vitalite=5, valeur_attaque=4, initiative=15, 
+                infecte = True, date_infection = None, date_mort=None, force_infection=0,stun= 0, 
+                stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None)
+
+Alec = demi(nom="Alec", ps=30, ps0=30, pa=pa_max, groupe="B", classe=0.5, 
+                generation=7, rang=7, vitalite=1, valeur_attaque=4, initiative=2, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0, 
+                stun = 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None,
+                munitions = 9, batterie = 300, switch= False, prelevements = [1,2,3,4,5,6,7,8,9,10])
+
+Crowe = derniere_main(nom="Crowe", ps=80, ps0=80, pa=pa_max, groupe="O", classe=4, 
+                generation=5, rang=5, vitalite=3, valeur_attaque=8, initiative=10, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None,
+                arme_valeur = None)
+
+Aleister = simonis(nom="Aleister", ps=130, ps0=130, pa=pa_max, groupe="AB", classe=0, 
+                generation=4, rang=4, vitalite=4, valeur_attaque=8, initiative=6, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                transexistence=[], target = None)
+
+Min = chrysalide(nom="Min", ps=150, ps0=150, pa=pa_max, groupe="O", classe=2, 
+                generation=5, rang=5, vitalite=5, valeur_attaque=6, initiative=8, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, antidote=True,
+                c4_est = True, c4_ouest = True, c4_vlad=True)
+
+Dressmond = dressmond(nom="Dressmond", ps=1500, ps0=1500, pa=pa_max, groupe="A", classe=1, 
+                generation=4, rang=1, vitalite=10, valeur_attaque=30, 
+                initiative=4, infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                valeur_attaque0=30,initiative0=4, niveau = 0, mode=False, conso = 0, drogue =2, elimination_virus = 0)
+
+Loup = loup(nom="Loup",ps=0, ps0=0, pa=0, groupe="AB", classe=4, 
+                generation=4, rang=4, vitalite=0, valeur_attaque=int(0/10), initiative=int(0/10), 
+                infecte = True, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                existe = False)
+
+
+Serviteurs = pnj(nom="Serviteurs", ps=400, ps0=400, pa=pa_max, groupe="B", classe=0, 
+                generation=6, rang=6, vitalite=3, valeur_attaque=3, initiative=3, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                ps_indiv = 30, combat = False)
+
+Gardes = pnj(nom="Gardes", ps=750, ps0=750, pa=pa_max, groupe="B", classe=2, 
+                generation=6, rang=6, vitalite=5, valeur_attaque=5, initiative=5, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                ps_indiv = 50, combat = False)
+
+
+Demis = pnj(nom="Demis", ps=850, ps0=550, pa=pa_max, groupe="B", classe=0.5, 
+                generation=7, rang=7, vitalite=2, valeur_attaque=3, initiative=3, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                ps_indiv = 17, combat = False)
+
+
+Section1 = pnj(nom="Section 1", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1, 
+                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                ps_indiv = 30, combat = False)
+
+Section2 = pnj(nom="Section 2", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1, 
+                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                ps_indiv = 30, combat = False)
+
+Section3 = pnj(nom="Section 3", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1, 
+                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9, 
+                infecte = False, date_infection = None, date_mort=None, force_infection=0,
+                stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
+                ps_indiv = 30, combat = False)
+
+
+liste_pnj = [Serviteurs, Gardes, Demis, Section1, Section2, Section3]
+
+pnj_temp_num=0
+# Variable pour détacher un pnj
+
+poches = [[1, "Bureau", "B", 0, 1, ""],[1, "Frigo", "B", 0, 0, ""],[2, "Frigo", "B", 0, 0, ""],[3, "Frigo", "B", 0, 0, ""],[4, "Frigo", "B", 0, 0, ""],[1, "Frigo", "A", 0, 0, ""],[2, "Frigo", "A", 0, 0, ""],[1, "Frigo", "O", 0, 0, ""],[1, "Alec", "O", 1, 0, ""],[2, "Alec", "O", 2, 0, ""]]
+# poches de sang : 
+    # Numéro dans la localisation
+    # Localisation
+    # Groupe
+    # Contaminé par le virus (2 ou 1 ou 0) (2 est la dose super forte d'Alec)
+    # Contaminé par la drogue (1 ou 0)
+    # Autres notes, commentaires, ...
+
+Lance_pouvoirs = True 
+# La lance possède ses pouvoirs
+
+
+
+temps_debut = time.localtime()
+t= time.mktime(temps_debut)
+heure_debut = temps_debut.tm_hour
+minute_debut = temps_debut.tm_min
+
+print("Début de la murder : " + heure_debut.__str__() + ":" + minute_debut.__str__())
+
+
+
+""" Fin de l'initialisation """
     
 
 # Amélioration = Faire une fonction intermédiaire qui peut faire un test de
