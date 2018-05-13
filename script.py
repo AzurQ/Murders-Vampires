@@ -896,9 +896,65 @@ class dressmond(vampire):
         print("Dressmond est pris d'hallucinations et de vertiges pendant quelques minutes")
         print("Il doit rester immobile à terre ou assis les yeux et oreilles bouché(e)s jusqu'à fin de la condition")
         Dressmond.get_stun(15,"Hallucinations et vertiges à cause de la drogue")
-           
+
+    # Déterminer la portée de l'AoE de Dressmond et les classes de distance
+    def aoe_range(self):
+        if self.niveau==0:
+            raise erreur("Dressmond ne peut pas effectuer d'AoE au niveau 0")
+        else:
+            distance =round(0.23*exp(self.niveau))
+            print("Dressmond peut effectuer une AoE avec une portée de " + str(distance) + " mètres")
+            print("Ne pas oublier les pnjs dans la liste des cibles (serviteurs, sections, gardes,...)")
+            print("")
+            print("Proximité de 1 : Entre 0 et " + str(round(distance/3)) + " mètres")
+            print("Proximité de 2 : Entre " + str(round(distance/3)) + " et " + str(round(2*distance/3)) + " mètres")
+            print("Proximité de 3 : Entre " + str(round(2*distance/3)) + " et " + str(distance) + " mètres")
+ 
+          
+    # Faire une attaque de zone
+    # Version sans overkill
+    def aoe(self,cibles):
+        # cibles est la liste des personnages à proximité sous forme de tuple
+            # (personnage, proximité) où la proximité est un nombre entre 1 et
+            # 3 qui représente la distance qui sépare la cible de Dressmond,
+            # appelé classe de distance (cf fonction aoe_range)
+         
+        # Gestion des erreurs
+        if not isinstance(cibles,list):
+            raise erreur("L'argument doit être une liste")
+        for x in cibles :
+            if not isinstance(x,tuple):
+                raise erreur("La liste doit contenir des tuples sous la forme (perso,proximité)")
+        for (perso,proximite) in cibles:
+            if not isinstance(proximite,int) or proximite>3 or proximite <1:
+                raise erreur("La classe de proximité ne peut être que 1, 2 ou 3")
+            
+        # On compte le nombre de personnages (les pnj peuvent compter pour plusieurs)
+        nombre_cibles = 0
+        
+        for (perso,proximite) in cibles:
+            if isinstance(perso,pnj):
+                nombre_cibles += ceil(perso.ps/perso.ps_indiv)
+            else :
+                nombre_cibles +=1
+                
+        # On évalue les dégâts de Dressmond
+        aoe_degats = (np.random.binomial(self.valeur_attaque,p))/nombre_cibles
+        
+        
+        # On applique les dégâts, en tenant compte de la diminution liée à la
+            # distance (inversement proportionnelle au carré)
+        for (perso, proximite) in cibles :
+            if isinstance(perso, pnj):
+                dommages = ceil((perso.ps/perso.ps_indiv)*aoe_degats*multiplicateur(proximite))
+                Dressmond.degats(perso,dommages)
+            else:
+                dommages =ceil(aoe_degats*multiplicateur(proximite))
+                Dressmond.degats(perso,dommages)
+ 
 
 
+        
 class chrysalide(vampire):
 
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite, 
@@ -1632,6 +1688,18 @@ def derelat(v):
     return min(v, beta*c)
 
 
+# Transformer la proximité en multiplicateur de dégâts causé par la disance 
+    # de l'AoE de Dressmond
+def multiplicateur(proximite):
+    if proximite == 1:
+        return(1)
+    elif proximite == 2:
+        return(0.5)
+    elif proximite == 3:
+        return(0.1)
+    else :
+        raise erreur("La classe de proximité ne peut être que 1, 2 ou 3")
+
 
 
 # Faire une sauvegarde des objets
@@ -1744,7 +1812,7 @@ Loup = loup(nom="Loup",ps=0, ps0=0, pa=0, groupe="AB", classe=4,
                 existe = False)
 
 
-Serviteurs = pnj(nom="Serviteurs", ps=400, ps0=400, pa=pa_max, groupe="B", classe=0, 
+Serviteurs = pnj(nom="Serviteurs", ps=210, ps0=210, pa=pa_max, groupe="B", classe=0, 
                 generation=6, rang=6, vitalite=3, valeur_attaque=3, initiative=3, 
                 infecte = False, date_infection = None, date_mort=None, force_infection=0,
                 stun= 0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit= False, date_reveil=None, fuite=None, 
@@ -1819,4 +1887,8 @@ print("Début de la murder : " + heure_debut.__str__() + ":" + minute_debut.__st
     
     
 # Faire ne pas marcher des trucs type balles en argent sur pnjs...
+    
+# Faire une fonction de documentation sur chaque fonction qui explique comment l'utiliser
+    
+# Implémenter l'overkill de la fonction aoe de Dressmond
         
