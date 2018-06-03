@@ -1773,34 +1773,34 @@ Serviteurs = pnj(nom="Serviteurs", ps=210, ps0=210, pa=pa_max, groupe="B", class
                  fuite=None,
                  ps_indiv=30, combat=False)
 
-Gardes = pnj(nom="Gardes", ps=750, ps0=750, pa=pa_max, groupe="B", classe=2,
+Gardes = pnj(nom="Gardes", ps=750, ps0=750, pa=pa_max, groupe="AB", classe=2,
              generation=6, rang=6, vitalite=5, valeur_attaque=5, initiative=5,
              infecte=False, date_infection=None, date_mort=None, force_infection=0,
              stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
              fuite=None,
              ps_indiv=50, combat=False)
 
-Demis = pnj(nom="Demis", ps=850, ps0=550, pa=pa_max, groupe="B", classe=0.5,
+Demis = pnj(nom="Demis", ps=850, ps0=550, pa=pa_max, groupe="A", classe=0.5,
             generation=7, rang=7, vitalite=2, valeur_attaque=3, initiative=3,
             infecte=False, date_infection=None, date_mort=None, force_infection=0,
             stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
             ps_indiv=17, combat=False)
 
-Section1 = pnj(nom="Section 1", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1,
+Section1 = pnj(nom="Section 1", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
                infecte=False, date_infection=None, date_mort=None, force_infection=0,
                stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
                fuite=None,
                ps_indiv=30, combat=False)
 
-Section2 = pnj(nom="Section 2", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1,
+Section2 = pnj(nom="Section 2", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
                infecte=False, date_infection=None, date_mort=None, force_infection=0,
                stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
                fuite=None,
                ps_indiv=30, combat=False)
 
-Section3 = pnj(nom="Section 3", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1,
+Section3 = pnj(nom="Section 3", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
                generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
                infecte=False, date_infection=None, date_mort=None, force_infection=0,
                stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
