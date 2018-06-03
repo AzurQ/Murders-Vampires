@@ -939,19 +939,26 @@ class dressmond(vampire):
                 nombre_cibles +=1
                 
         # On évalue les dégâts de Dressmond
-        aoe_degats = (np.random.binomial(self.valeur_attaque,p))/nombre_cibles
-        
+        total_degats = (np.random.binomial(self.valeur_attaque,p))
+
+        aoe_degats = total_degats/nombre_cibles
         
         # On applique les dégâts, en tenant compte de la diminution liée à la
             # distance (inversement proportionnelle au carré)
-        for (perso, proximite) in cibles :
-            if isinstance(perso, pnj):
-                dommages = ceil((perso.ps/perso.ps_indiv)*aoe_degats*multiplicateur(proximite))
-                Dressmond.degats(perso,dommages)
-            else:
-                dommages =ceil(aoe_degats*multiplicateur(proximite))
-                Dressmond.degats(perso,dommages)
- 
+        while total_degats > 0:
+            for (perso, proximite) in cibles :
+                if isinstance(perso, pnj):
+                    dommages = ceil((perso.ps/perso.ps_indiv)*aoe_degats*multiplicateur(proximite))
+                    total_degats -= min(perso.ps_indiv, dommages)
+                    Dressmond.degats(perso,dommages)
+                else:
+                    dommages =ceil(aoe_degats*multiplicateur(proximite))
+                    total_degats -= min(perso.ps, dommages)
+                    Dressmond.degats(perso,dommages)
+                if perso.ps <= 0:
+                    cibles.remove((perso, proximite))
+                    nombre_cibles -= 1
+                    aoe_degats *= (nombre_cibles + 1)/(nombre_cibles)
 
 
         
