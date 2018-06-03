@@ -545,8 +545,8 @@ class vampire:
             else:
                 temps_immobi = round((self.generation + 1) * 5 / 2)
 
-            if temps_immobi > self.stun:
-                self.stun = temps_immobi
+            if 5 * temps_immobi > self.stun:
+                self.stun = 5 * temps_immobi
                 self.stun_raison = "Hallucinations et vertiges"
                 print(self.nom + " est pris(e) d'hallucinations et de vertiges pendant quelques moments")
                 print(
