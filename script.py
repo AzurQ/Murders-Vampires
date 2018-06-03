@@ -15,6 +15,7 @@ from math import sqrt
 from math import ceil
 from random import random
 from math import log
+from math import log10
 import time
 import pickle
 
@@ -40,7 +41,7 @@ class vampire:
         self.groupe = groupe
         # Groupe Sanguin
         self.classe = classe
-        # La classe est le type vampirique parmi (1,2,4,0,0.5) représentant les 5
+        # La classe est le type vampirique parmi (1,2,4,0,0.5) :
         # 1 et 2 sont les classes I et II
         # 4 sont les vampire élémentaires (4 éléments)
         # 0 sont les vampires originels
@@ -348,7 +349,7 @@ class vampire:
                     print("La lampe n'a strictement aucun effet")
                 else:
 
-                    dommages = round(0.005 * exp(cible.generation))
+                    dommages = round(0.005 * exp(cible.generation) * cible.vitalite)
                     self.degats(cible, dommages)
 
                     immobilisation = max(0, (2 / 3) * log(cible.generation) - 1 / 3)
@@ -386,7 +387,7 @@ class vampire:
                     print("La lampe n'a strictement aucun effet")
                 else:
 
-                    dommages = round(0.005 * exp(cible.generation))
+                    dommages = round(0.005 * exp(cible.generation) * cible.vitalite )
                     self.degats(cible, dommages)
 
                     immobilisation = max(0, (2 / 3) * log(cible.generation) - 1 / 3)
@@ -437,7 +438,7 @@ class vampire:
             succes = (random() < chance)
             if succes:
                 cible.defuite()
-                print(cible.nom + " est assommé(e) pour " + str(int(12 / (1 - chance))) + " secondes")
+                print(cible.nom + " est assommé(e) pour " + str(int(12 * (1 + ( chance / (1 - chance)) ** 2))) + " secondes")
             else:
                 print(self.nom + " n'est pas arrivée à assommer " + cible.nom)
                 print("MJ : Prévenir " + cible.nom)
@@ -446,7 +447,7 @@ class vampire:
             succes = (random() < chance / 2)
             if succes:
                 print(cible.nom + " est assommé(e)")
-                cible.etourdi = min(max(cible.etourdi, chance / 2), 0.99)
+                cible.etourdi = min(max(cible.etourdi, chance / 2), 0.95)
                 cible.etourdi_tour = True
                 cible.defuite()
             else:
@@ -480,7 +481,7 @@ class vampire:
         if not combat:
             succes = (random() < chance)
             if succes:
-                print(cible.nom + " est assommé(e) pour " + str(int(12 / (1 - chance))) + " secondes")
+                print(cible.nom + " est assommé(e) pour " + str(int(12 * (1 + (chance / (1 - chance)) ** 2))) + " secondes")
                 cible.defuite()
             else:
                 print(self.nom + " n'est pas arrivée à assommer " + cible.nom)
@@ -490,7 +491,7 @@ class vampire:
             succes = (random() < chance / 2)
             if succes:
                 print(cible.nom + " est assommé(e)")
-                cible.etourdi = min(max(cible.etourdi, chance / 2), 1)
+                cible.etourdi = min(max(cible.etourdi, chance / 2), 0.95)
                 cible.etourdi_tour = True
                 cible.defuite()
             else:
@@ -712,7 +713,7 @@ class vampire:
 
                 self.degats(cible, cible.vitalite)
 
-                duree = int(5 * 4 * exp(cible.rang / 2))
+                duree = int(4 * exp(cible.rang / 2))
                 print(cible.nom + " est immobilisé pendant " + str(duree) + " minutes")
 
                 cible.get_stun(5 * duree, "La lance empêche la régénération")
@@ -739,9 +740,9 @@ class vampire:
 
     def fuire(self, poursuivant):
         self_score = log(1 + (e - 1) * self.ps / self.ps0) * (
-            np.random.binomial(self.initiative, p) ** (log(2) / log(10)))
+            1 + np.random.binomial(self.initiative, p) / 10)
         poursuivant_score = log(1 + (e - 1) * poursuivant.ps / poursuivant.ps0) * (
-            np.random.binomial(poursuivant.initiative, p) ** (log(2) / log(10)))
+            1 + np.random.binomial(poursuivant.initiative, p) / 10)
 
         if self.stun != 0 or self.etourdi != 0:
             print(self.nom + " n'est pas capable de fuir")
@@ -764,9 +765,9 @@ class vampire:
     # Connaître la vitesse
     def vitesse(self):
         vit = round(10 * 2 ** (self.initiative / 10))
-        vitms = round(derelat(vit * 3600 / 1000))
-        vit = round(vitms * 1000 / 3600)
-        sprint = round(derelat(vit * 3 * 3600 / 1000))
+        vitms = round(derelat(vit * 1000 / 3600))
+        vit = round(vitms * 3600 / 1000)
+        sprint = round(derelat(vit * 3 * 1000 / 3600))
         if isinstance(self, dressmond) and self.niveau >= 8:
 
             vit_ordre = int(log(vit) / log(10))
@@ -796,7 +797,7 @@ class dressmond(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                  valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
                  stun, stun_raison, etourdi, etourdi_tour, lien, maudit, date_reveil, fuite,
-                 valeur_attaque0, initiative0, niveau, mode, conso, drogue, elimination_virus):
+                 valeur_attaque0, initiative0, niveau, mode, conso, drogue):
         vampire.__init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                          valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
                          stun, stun_raison, etourdi, etourdi_tour, lien, maudit, date_reveil, fuite)
@@ -810,8 +811,6 @@ class dressmond(vampire):
         # Consommation de PS à chaque tour
         self.drogue = drogue
         # Nombre de sédatifs restant à Dressmond
-        self.elimination_virus = elimination_virus
-        # Temps vécu en heures par le virus. Si il dépasse 24h, Dressmond guérit du virus
 
     # Monter de niveau   
     def godendmode(self, nouveau_niveau):
@@ -1391,19 +1390,7 @@ def initiative():
 
             if Dressmond.ps <= 0.25 * Dressmond.ps0:
                 print("Dressmond est mal en point")
-
-    # On comptabilise le temps vécu par le virus à l'intérieur de Dressmond (accélération du temps)
-    # Si le temps dépasse 24h, le virus est évacué
-    if Dressmond.infecte:
-        Dressmond.elimination_virus += Dressmond.conso / 12
-
-        if Dressmond.elimination_virus >= 24:
-            print("Dressmond et sa régénération finissent par guérir du virus")
-            Dressmond.elimination_virus = 0
-            Dressmond.infecte = False
-            Dressmond.date_infection = None
-            Dressmond.date_mort = None
-            Dressmond.force_infection = 0
+                
 
     init = [np.random.binomial(perso.initiative, p) for perso in liste]
 
@@ -1693,7 +1680,7 @@ Dressmond = dressmond(nom="Dressmond", ps=1500, ps0=1500, pa=pa_max, groupe="A",
                       initiative=4, infecte=False, date_infection=None, date_mort=None, force_infection=0,
                       stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
                       fuite=None,
-                      valeur_attaque0=30, initiative0=4, niveau=0, mode=False, conso=0, drogue=2, elimination_virus=0)
+                      valeur_attaque0=30, initiative0=4, niveau=0, mode=False, conso=0, drogue=2)
 
 Loup = loup(nom="Loup", ps=0, ps0=0, pa=0, groupe="AB", classe=4,
             generation=4, rang=4, vitalite=0, valeur_attaque=int(0 / 10), initiative=int(0 / 10),
@@ -1701,7 +1688,7 @@ Loup = loup(nom="Loup", ps=0, ps0=0, pa=0, groupe="AB", classe=4,
             stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
             existe=False)
 
-Serviteurs = pnj(nom="Serviteurs", ps=400, ps0=400, pa=pa_max, groupe="B", classe=0,
+Serviteurs = pnj(nom="Serviteurs", ps=210, ps0=210, pa=pa_max, groupe="B", classe=0,
                  generation=6, rang=6, vitalite=3, valeur_attaque=3, initiative=3,
                  infecte=False, date_infection=None, date_mort=None, force_infection=0,
                  stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
@@ -1779,3 +1766,14 @@ print("Début de la murder : " + heure_debut.__str__() + ":" + minute_debut.__st
 
 
 # Faire ne pas marcher des trucs type balles en argent sur pnjs...
+
+   
+# Faire une fonction de documentation sur chaque fonction qui explique comment l'utiliser
+    
+# Implémenter l'overkill de la fonction aoe de Dressmond
+         
+# Faire fonction d'initialisation (pour ne pas avoir à toucher au script) 
+
+# Fuite -> faire décompte. Faire attention au tour 0/tour 1 ?
+
+# faire fonction pour faire passer le temps .... ()
