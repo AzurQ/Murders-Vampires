@@ -7,6 +7,7 @@ Created on Wed Feb 28 22:15:32 2018
 
 """
 
+# Modules importés
 import numpy as np
 from math import exp
 from math import e
@@ -14,9 +15,9 @@ from math import log
 from math import sqrt
 from math import ceil
 from random import random
-from math import log
 import time
 import pickle
+
 
 
 # Classe pour renvoyer des erreurs
@@ -25,13 +26,13 @@ class erreur(Exception):
         self.message = message
 
 
-# Classe vampire pour les PJs
+
+# Classe générale des vampires
 class vampire:
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang,
                  vitalite, valeur_attaque, initiative,
                  infecte, date_infection, date_mort, force_infection,
                  stun, stun_raison, etourdi, etourdi_tour, lien, maudit, date_reveil, fuite):
-
         self.nom = nom
         self.ps0 = ps0
         # ps0 est la valeur initiale de ps
@@ -40,7 +41,7 @@ class vampire:
         self.groupe = groupe
         # Groupe Sanguin
         self.classe = classe
-        # La classe est le type vampirique parmi (1,2,4,0,0.5) représentant les 5
+        # La classe est le type vampirique parmi (1,2,4,0,0.5) :
         # 1 et 2 sont les classes I et II
         # 4 sont les vampire élémentaires (4 éléments)
         # 0 sont les vampires originels
@@ -53,74 +54,94 @@ class vampire:
         self.valeur_attaque = valeur_attaque
         self.initiative = initiative
         self.infecte = infecte
-        # Booléen
+        # Booléen indiquant si le personnage est infecté par la molécule
         self.date_infection = date_infection
+        # Moment précis de la contamination
         self.date_mort = date_mort
         # Heure à laquelle le personnage mourra du virus
         self.force_infection = force_infection
+        # 1 (Molécule standard) ou 2 (Dose concentrée)
         self.stun = stun
-        # Représente le nombre de tour où le personnage sera immobilisé
+        # Représente le nombre de tours où le personnage sera immobilisé
         self.stun_raison = stun_raison
         # Donne la raison pour laquelle le personnage est immobilisé
         self.etourdi = etourdi
         # Donne la probabilité de rester étourdi à chaque tour
-        # Indépendant du stun
+        # Indépendant du stun car fonctionne sur une mécanique différente
         self.etourdi_tour = etourdi_tour
-        # Est-ce que le personnage vient d'être étourdi ce tour ?
+        # Booléen indiquant si le personnage vient d'être étourdi ce tour 
         self.lien = lien
-        # Représente le nombre de PS de liens de sang que le personnage subit en restriction
+        # Représente le nombre de PS de liens de sang que le personnage subit 
+            # en restriction à cause du pouvoir de Crowe (Pharacibr)
         self.maudit = maudit
-        # Détermine si le joueur a utilisé la Lance, et si il va mourir prochainement
+        # Booléen indiquant sile joueur a utilisé la Lance
         self.date_reveil = date_reveil
         # Représente l'heure à laquelle un joueur transpercé par la Lance ressuscitera
         self.fuite = fuite
+        # Indique le nombre de tours pour que le personnage puisse fuire
+
 
     # Porter une attaque à un autre joueur
-    def attaque(self, cible, classe=None, surprise=False):
-
-        # Pour un vampire attaquant, il doit faire une prédiction du type vampire de sa cible
+    def attaque(self, cible, classe = None, surprise = False, nombre = 1):
+        # Le vampire attaquant doit faire une prédiction du type vampire de sa cible
         # La classe est la prédiction de l'attaquant sur la classe de sa cible
         # Il faut entrer le nombre correspond à la classe
-        # Un vampire défendant n'a cependant pas cette obligation et peut simplement attaquer sans préciser
+        # Un vampire défendant n'a cependant pas cette obligation et il n'y a
+            # pas besoin de préciser cet argument qui est est nul par défaut
 
-
-        # Ici, si et seulement si le vampire attaque, cela pourra modifier sa valeur d'avantage ou désavantage.
-        # En effet, un vampire défendant ne peut pase prendre par surprise son adversaire
-        # Avantage peut être +1, -1 ou revenir à 0        
+        # Surprise permet de préciser si le vampire attaquant a un avantage 
+            # de type surprise, stratégique ou autre ...
+        # Cela pourra modifier sa valeur d'avantage ou désavantage.
+        # En fonction de son éventuelle prédiction, il peut également avoir un désavantage
+        # Avantage peut être +1, -1 ou revenir à 0  
+        
+        # Dressmond ne peut pas faire plusieurs attaques
+        if isinstance(self, dressmond):
+            raise erreur("Dressmond ne peut pas porter plusieurs attaques lors d'un même tour")
+                
         avantage = surprise + (classe is not None) * (classe == cible.classe - 1)
-
-        # Cas si Crowe a une arme de sang (attaquant)
-        if isinstance(self, derniere_main) and self.arme_valeur is not None:
-            if avantage == 0:
-                dommages = max(np.random.binomial(self.valeur_attaque, p), self.arme_valeur)
+        
+        dommages_tot = 0
+        # Attaques multiples
+        for _ in range(nombre):
+            dommages = 0
+            # Cas si Crowe a une arme de sang (attaquant)
+            if isinstance(self, derniere_main) and self.arme_valeur is not None:
+                if avantage == 0:
+                    dommages = max(np.random.binomial(self.valeur_attaque, p), self.arme_valeur)
+                elif avantage > 0:
+                    dommages = max(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p),
+                                   self.arme_valeur)
+                elif avantage < 0:
+                    dommages = min(max(np.random.binomial(self.valeur_attaque, p), self.arme_valeur),
+                                   max(np.random.binomial(self.valeur_attaque, p), self.arme_valeur))
+    
+            # Cas usuel
+            elif avantage == 0:
+                dommages = np.random.binomial(self.valeur_attaque, p)
             elif avantage > 0:
-                dommages = max(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p),
-                               self.arme_valeur)
+                dommages = max(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
             elif avantage < 0:
-                dommages = min(max(np.random.binomial(self.valeur_attaque, p), self.arme_valeur),
-                               max(np.random.binomial(self.valeur_attaque, p), self.arme_valeur))
+                dommages = min(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
+    
+            # Cas si Crowe a une arme de sang (attaqué)
+            if isinstance(cible, derniere_main):
+                if dommages >= cible.arme_valeur:
+                    arme_dispell()
 
-        # Cas usuel
-        elif avantage == 0:
-            dommages = np.random.binomial(self.valeur_attaque, p)
-        elif avantage > 0:
-            dommages = max(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
-        elif avantage < 0:
-            dommages = min(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
-
+            dommages_tot += dommages
+            
         # On applique les dégâts
-        self.degats(cible, dommages)
+        self.degats(cible, dommages_tot)
 
-        # Cas si Crowe a une arme de sang (attaqué)
-        if isinstance(cible, derniere_main):
-            if dommages >= cible.arme_valeur:
-                arme_dispell()
 
-    # Appliquer des dommages à un autre joueur, et vérifier l'état
+    # Appliquer des dommages à un autre joueur
     def degats(self, cible, dommages):
 
         # Si on tue sa cible        
         if dommages >= cible.ps:
+            print(cible.nom + " subit " + str(cible.ps) + " dommages")
+            cible.ps = 0
             print(cible.nom + " meurt")
             cible.defuite()
             if cible.nom == "Loup":
@@ -131,12 +152,11 @@ class vampire:
             cible.ps -= dommages
             print(self.nom + " inflige " + str(dommages) + " dommages à " + cible.nom)
             print(cible.nom + " est désormais à " + str(cible.ps) + " PS")
-
             cible.etat()
 
-            # Dépenser des PA ou des PS
 
-    def depense(self, pa=0, ps=0):
+    # Dépenser des PA ou des PS
+    def depense(self, pa = 0, ps = 0):
 
         if not isinstance(pa, int) or not isinstance(ps, int):
             raise erreur("Coût non entier")
@@ -162,6 +182,7 @@ class vampire:
             else:
                 self.pa -= pa
 
+
     # Connaître si un joueur est un bonne forme ou est en dessous de 25% de ses PS
     def etat(self):
         if self.ps == 0:
@@ -174,12 +195,11 @@ class vampire:
                 print(self.nom + " souffre des effets du virus")
 
 
-
-
-                # Permet de savoir si un joueur peut agir à son tour
-                # Cela permet de prendre en compte le fait qu'un perso peut se faire immobiliser
-                # avant son tour de jeu dans un même round
-
+    # Permet de savoir si un joueur peut agir à son tour
+    # Cela permet de prendre en compte le fait qu'un perso peut se faire immobiliser
+    # avant son tour de jeu dans un même round
+    # Cela permet également de prendre en compte la fuite, qui doit être décomptée à chaque
+        # round lors du tour du joueur pour certifier qu'il ne s'est pas fait immobiliser
     def agir(self):
         if self.ps <= 0:
             raise erreur(self.nom + " est mort")
@@ -224,6 +244,7 @@ class vampire:
                         else:
                             print(self.nom + " est inconscient")
 
+
         # Actualiser la fuite
         if self.fuite is not None:
             if self.fuite == 1:
@@ -233,14 +254,18 @@ class vampire:
                     self.desengage()
             else:
                 self.fuite -= 1
+                print(self.nom + " essaye de fuir, ses actions sont limitées à cette fin")
+
 
     # Faire le regain de PA, sera utilisé dans une fonction globale
     def regain(self):
         self.pa = pa_max
 
+
     # Print les infos et attributs du personnage
     def info(self):
         return (self.__dict__)
+
 
     # Sentir l'aura d'un autre vampire pour tenter d'estimer ses caractéristiques
     def sentir(self, cible, pa):
@@ -253,9 +278,11 @@ class vampire:
         delta = self.rang - cible.rang
         chance = pa * exp(-delta / 3) / 10
 
+        # Tirages aléatoires. S'ils sont plus petits que la chance, l'événement associé se produit
         succes = random()
         reperer = random()
 
+        # Cas particulier de Dressmond
         if cible.nom == "Dressmond":
             if reperer <= chance:
                 print(
@@ -264,20 +291,21 @@ class vampire:
                 print(
                     "L'aura de Dressmond était si forte que " + self.nom + " n'a pas réussi à l'analyser mais " + self.nom + "ne s'est pas fait(e) repérer")
         else:
-            succes = (succes <= chance)
+            reussite = (succes <= chance)
 
+            # Informations obtenues en cas d'échec
             delta_min = +3 * log(10 / pa)
             gen_min = int(self.rang + delta_min + 1)
 
             if reperer <= chance:
-                if succes:
+                if reussite:
                     print(self.nom + " a réussi à analyser l'aura de " + cible.nom + " mais s'est fait(e) repérer")
                 else:
                     print(
                         self.nom + " a seulement réussi à découvrir que " + cible.nom + " était de génération supérieure à " + str(
                             gen_min) + " et s'est en plus fait(e) repérer")
             else:
-                if succes:
+                if reussite:
                     print(self.nom + " a réussi à analyser l'aura de " + cible.nom + " sans se faire repérer")
                 else:
                     print(
@@ -285,11 +313,16 @@ class vampire:
                             gen_min))
 
 
-                    # Appliquer un stun à un joueur
-
+    # Appliquer un stun à un joueur
     def get_stun(self, temps, cause):
-        # Dans une immobilisation, on conserve uniquement celle qui dure le plus longtemps
-        if temps >= self.stun:
+        # Pour les PNJs, il vaut mieux procéder cas par cas
+        if isinstance(self, pnj):  
+            print("MJ : Veuillez appliquer les effets de l'immobilisation à la main")
+            print("Cause de l'immobilisation : " + cause)
+            print("Nombre de rounds d'immobilisation : " + str(temps))
+        # On conserve uniquement celle qui dure le plus longtemps
+            # On perd malheureusement la trace des autres conditions qui peuvent se superposer
+        elif temps >= self.stun:
             self.stun = temps
             self.stun_raison = cause
             self.defuite()
@@ -300,21 +333,15 @@ class vampire:
                 self.nom + " est déjà immobilisé(e) par " + self.stun_raison + " pendant " + str(self.stun) + " tours")
 
 
-            # Balles en argent d'Alec : Faire dégâts et immobilisation éventuelle
-
+    # Balles en argent du Soul Dream d'Alec
     def argent(self, cible):
         if Alec.munitions == 0:
             raise erreur("Soul Dream n'a plus de munitions")
 
         Alec.munitions -= 1
-
         print("Bang !")
 
         dommages = cible.vitalite
-
-        if cible.nom == "Dressmond":
-            dommages = 1
-
         self.degats(cible, dommages)
 
         immobilisation = round(0.1 * exp(2 * cible.generation / 3))
@@ -322,6 +349,7 @@ class vampire:
         if not isinstance(cible, demi):
             cible.get_stun(immobilisation, "Une balle en argent empêche temporairement la régénération")
             cible.defuite()
+
 
     # Lampe à UV d'Alec : Immobilisation et dégâts éventuels
     def lampe(self, cible):
@@ -331,14 +359,13 @@ class vampire:
 
         # Cas où la lampe est déjà allumée      
         if Alec.switch:
-
-            # Si plus assez de batteries
+            # Si plus assez de batterie
             if Alec.batterie < 6:
                 Alec.batterie = 0
                 print("La lampe n'a plus de batterie et s'éteint")
                 Alec.switch = False
 
-            # Si encore assez de batteries
+            # Si encore assez de batterie
             else:
                 Alec.batterie = max(0, Alec.batterie - 12)
 
@@ -348,7 +375,7 @@ class vampire:
                     print("La lampe n'a strictement aucun effet")
                 else:
 
-                    dommages = round(0.005 * exp(cible.generation))
+                    dommages = round(0.005 * exp(cible.generation) * cible.vitalite)
                     self.degats(cible, dommages)
 
                     immobilisation = max(0, (2 / 3) * log(cible.generation) - 1 / 3)
@@ -363,7 +390,6 @@ class vampire:
                 if Alec.batterie == 0:
                     print("La lampe finit par s'éteindre")
                     Alec.switch = False
-
 
         # Cas où Alec allume la lampe
         else:
@@ -386,7 +412,7 @@ class vampire:
                     print("La lampe n'a strictement aucun effet")
                 else:
 
-                    dommages = round(0.005 * exp(cible.generation))
+                    dommages = round(0.005 * exp(cible.generation) * cible.vitalite )
                     self.degats(cible, dommages)
 
                     immobilisation = max(0, (2 / 3) * log(cible.generation) - 1 / 3)
@@ -402,20 +428,21 @@ class vampire:
                     print("La lampe finit par s'éteindre")
                     Alec.switch = False
 
+
     # Se libérer des liens de sang de Crowe
     def delien(self):
-        dommages = np.random.binomial(self.valeur_attaque, p)
-        if dommages >= self.lien:
+        dommages_virtuels = np.random.binomial(self.valeur_attaque, p)
+        if dommages_virtuels >= self.lien:
             self.lien = 0
             print(self.nom + " est arrivé à se libérer")
         else:
             print(self.nom + " n'est pas arrivé à se libérer")
 
+
     # Matraque de Min        
     def matraque(self, cible, combat):
         # combat = True ou False
         # Le combat représente si il y a situation de surprise ou non
-
         if cible.nom == "Vania":
             chance = 0.4
         elif cible.nom == "Alec":
@@ -437,7 +464,7 @@ class vampire:
             succes = (random() < chance)
             if succes:
                 cible.defuite()
-                print(cible.nom + " est assommé(e) pour " + str(int(12 / (1 - chance))) + " secondes")
+                print(cible.nom + " est assommé(e) pour " + str(int(12 * (1 + ( chance / (1 - chance)) ** 2))) + " secondes")
             else:
                 print(self.nom + " n'est pas arrivée à assommer " + cible.nom)
                 print("MJ : Prévenir " + cible.nom)
@@ -445,18 +472,23 @@ class vampire:
         if combat:
             succes = (random() < chance / 2)
             if succes:
-                print(cible.nom + " est assommé(e)")
-                cible.etourdi = min(max(cible.etourdi, chance / 2), 0.99)
-                cible.etourdi_tour = True
-                cible.defuite()
+                if isinstance(cible, pnj):
+                   # En combat, il vaut mieux résoudre au cas par cas
+                   print(cible.nom + " est étourdi(e) pendant " + str(int(1 + ( chance / (2 - chance)) ** 2)) + " tours")
+                   print("MJ : Considérez les effets d'étourdissement à la main")
+                else:
+                    print(cible.nom + " est assommé(e)")
+                    cible.etourdi = min(max(cible.etourdi, chance / 2), 0.95)
+                    cible.etourdi_tour = True
+                    cible.defuite()
             else:
                 print(self.nom + " n'est pas arrivée à assommer " + cible.nom)
+
 
     # Assommer à mains nues        
     def assomme(self, cible, combat):
         # combat = True ou False
         # Le combat représente si il y a situation de surprise ou non
-
         if cible.nom == "Vania":
             chance = 0.4 * self.valeur_attaque / 10
         elif cible.nom == "Alec":
@@ -474,13 +506,14 @@ class vampire:
         else:
             chance = 0.5 * self.valeur_attaque / 10
 
+        # Ajustement pour Dressmond qui peut voir son attaque augmenter
         if self.nom == "Dressmond":
             chance = chance * self.valeur_attaque0 / self.valeur_attaque
 
         if not combat:
             succes = (random() < chance)
             if succes:
-                print(cible.nom + " est assommé(e) pour " + str(int(12 / (1 - chance))) + " secondes")
+                print(cible.nom + " est assommé(e) pour " + str(int(12 * (1 + (chance / (1 - chance)) ** 2))) + " secondes")
                 cible.defuite()
             else:
                 print(self.nom + " n'est pas arrivée à assommer " + cible.nom)
@@ -489,18 +522,25 @@ class vampire:
         if combat:
             succes = (random() < chance / 2)
             if succes:
-                print(cible.nom + " est assommé(e)")
-                cible.etourdi = min(max(cible.etourdi, chance / 2), 1)
-                cible.etourdi_tour = True
-                cible.defuite()
+                if isinstance(cible, pnj):
+                   # En combat, il vaut mieux résoudre au cas par cas
+                    print(cible.nom + " est étourdi(e) pendant " + str(int(1 + ( chance / (2 - chance)) ** 2)) + " tours")
+                    print("MJ : Considérez les effets d'étourdissement à la main")
+                else :
+                    print(cible.nom + " est assommé(e)")
+                    cible.etourdi = min(max(cible.etourdi, chance / 2), 0.95)
+                    cible.etourdi_tour = True
+                    cible.defuite()
             else:
                 print(self.nom + " n'est pas arrivée à assommer " + cible.nom)
 
+   
     # Boire une poche de sang. Il faut donner le numéro de la poche qui est bue.
     def boire(self, numero_poche):
         poche = poches[numero_poche]
         del poches[numero_poche]
 
+        # Regain en fonction de la compatibilité des groupes sanguins
         if poche[2] == self.groupe:
             gain = 10
         elif self.nom == "Min":
@@ -518,18 +558,25 @@ class vampire:
         else:
             gain = 1
 
+        # Limite max
         self.ps += min(gain, 1.5 * self.ps0 - self.ps)
         print("Vous regagnez quelques PS")
 
+        # Effets de la drogue ou du virus si la poche est contaminée
         if poche[3] != 0:
             self.virus(poche[3])
-
         if poche[4] != 0:
             self.take_drogue()
+
 
     # Effets de la drogue    
     def take_drogue(self):
         self.defuite()
+        # Le cas suivant s'explique par le fait qu'une fonction pour faire 
+            # prendre la drogue à Dressmond par injection existe. Mais cette
+            # fonction take_drogue ne s'applique pas à Dressmond dans cette 
+            # autre fonction injection. Ainsi, le seul cas restant est celui
+            # de la consommation d'une poche de sang.
         if self.nom == "Dressmond":
             Dressmond.injection(poche=True)
         else:
@@ -544,8 +591,8 @@ class vampire:
             else:
                 temps_immobi = round((self.generation + 1) * 5 / 2)
 
-            if temps_immobi > self.stun:
-                self.stun = temps_immobi
+            if 5 * temps_immobi > self.stun:
+                self.stun = 5 * temps_immobi
                 self.stun_raison = "Hallucinations et vertiges"
                 print(self.nom + " est pris(e) d'hallucinations et de vertiges pendant quelques moments")
                 print(
@@ -554,13 +601,15 @@ class vampire:
             else:
                 print(self.nom + " est pris d'hallucinations et vertiges passagers")
 
+        # La drogue augmente les effets du virus
         if self.infecte:
             self.force_infection = 2
+
 
     # Boire le sang d'un autre vampire ou joueur
     def suce(self, cible, pourcentage):
         # Pourcentage est le ratio de sang que l'on souhaite boire entre 0 et 1
-        if pourcentage >= 1:
+        if pourcentage > 1 or pourcentage < 0 :
             print("Le pourcentage doit être entre 0 et 1")
         else:
             if cible.groupe == self.groupe:
@@ -594,11 +643,11 @@ class vampire:
             if cible.infecte:
                 self.virus(1)
 
+
     # Connaître les effets de l'assimilation du virus
     # Cela sert aussi à mettre à jour l'état
-    def virus(self, force=1):
+    def virus(self, force = 1):
         # force est 1 si dose normale, 2 si dose élevée d'Alec
-
         if self.ps == 0:
             print(self.nom + " est mort(e)")
         else:
@@ -634,11 +683,9 @@ class vampire:
                 if force == 2:
                     duree_propagation = duree_propagation / 3
 
-                # temps restant en heures actuellement
+                # Temps restant en secondes, et proportionnel au nombre de ps restants
                 temps_restant = duree_propagation * 60 * 60 * self.ps / self.ps0
-                # En secondes, et proportionnel au nombre de ps restants
-
-
+                
                 self.date_mort = self.date_infection + temps_restant
 
                 heure_mort = time.localtime(self.date_mort).tm_hour
@@ -653,12 +700,12 @@ class vampire:
                 # virus qu'il a développé depuis son infection, il est
                 # considéré comme mort même si il lui restait encore des ps,
                 # qui auraient dû être décomptés par le virus
-
                 if time.time() >= self.date_mort:
                     self.ps = 0
                     print(self.nom + " décède du virus")
                 elif (self.date_mort - time.time()) / rate < 0.25 * self.ps0:
                     print(self.nom + " est mal en point et souffre des effets du virus")
+
 
     # Utiliser l'antidote de Min    
     def takeantidote(self):
@@ -693,8 +740,9 @@ class vampire:
         else:
             print(self.nom + " n'était pas infecte. L'antidote n'a aucun effet")
 
+
     # Utiliser la Lance sur une cible
-    def lance(self, cible, manche=False):
+    def lance(self, cible, manche = False):
         global Lance_pouvoirs
         if Lance_pouvoirs:
             if self.nom == cible.nom:
@@ -712,7 +760,7 @@ class vampire:
 
                 self.degats(cible, cible.vitalite)
 
-                duree = int(5 * 4 * exp(cible.rang / 2))
+                duree = int(4 * exp(cible.rang / 2))
                 print(cible.nom + " est immobilisé pendant " + str(duree) + " minutes")
 
                 cible.get_stun(5 * duree, "La lance empêche la régénération")
@@ -734,14 +782,13 @@ class vampire:
             print("La lance a perdu ses pouvoirs")
             self.degats(cible, cible.vitalite)
 
-            # Tenter de fuir lorsqu'un opposant nous poursuit. Si il y a plusieurs
-            # opposants, il faut réussir pour chacun d'eux.
 
+    # Tenter de fuir face à un poursuivant
     def fuire(self, poursuivant):
         self_score = log(1 + (e - 1) * self.ps / self.ps0) * (
-            np.random.binomial(self.initiative, p) ** (log(2) / log(10)))
+            1 + np.random.binomial(self.initiative, p) / 10)
         poursuivant_score = log(1 + (e - 1) * poursuivant.ps / poursuivant.ps0) * (
-            np.random.binomial(poursuivant.initiative, p) ** (log(2) / log(10)))
+            1 + np.random.binomial(poursuivant.initiative, p) / 10)
 
         if self.stun != 0 or self.etourdi != 0:
             print(self.nom + " n'est pas capable de fuir")
@@ -755,18 +802,23 @@ class vampire:
             else:
                 self.fuite = tours
 
+
     # Annuler la fuite
     def defuite(self):
         if self.fuite is not None:
             self.fuite = None
             print(self.nom + " est empêché dans sa fuite")
 
-    # Connaître la vitesse
+
+    # Connaître la vitesse de déplacement
     def vitesse(self):
         vit = round(10 * 2 ** (self.initiative / 10))
-        vitms = round(derelat(vit * 3600 / 1000))
-        vit = round(vitms * 1000 / 3600)
-        sprint = round(derelat(vit * 3 * 3600 / 1000))
+        vitms = round(derelat(vit * 1000 / 3600))
+        vit = round(vitms * 3600 / 1000)
+        sprint = round(derelat(vit * 3 * 1000 / 3600))
+        
+        # On adopte une notation scientifique pour les grandes vitesses
+        # On n'affiche alors que 3 chiffres significatifs, qu'on doit séparer
         if isinstance(self, dressmond) and self.niveau >= 8:
 
             vit_ordre = int(log(vit) / log(10))
@@ -792,11 +844,13 @@ class vampire:
             print("Sa vitesse de sprint est de " + str(sprint) + " m/s")
 
 
+
+# Classe de Dressmond
 class dressmond(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                  valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
                  stun, stun_raison, etourdi, etourdi_tour, lien, maudit, date_reveil, fuite,
-                 valeur_attaque0, initiative0, niveau, mode, conso, drogue, elimination_virus):
+                 valeur_attaque0, initiative0, niveau, mode, conso, drogue):
         vampire.__init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                          valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
                          stun, stun_raison, etourdi, etourdi_tour, lien, maudit, date_reveil, fuite)
@@ -810,8 +864,7 @@ class dressmond(vampire):
         # Consommation de PS à chaque tour
         self.drogue = drogue
         # Nombre de sédatifs restant à Dressmond
-        self.elimination_virus = elimination_virus
-        # Temps vécu en heures par le virus. Si il dépasse 24h, Dressmond guérit du virus
+
 
     # Monter de niveau   
     def godendmode(self, nouveau_niveau):
@@ -822,14 +875,14 @@ class dressmond(vampire):
             raise erreur("Dressmond n'a plus assez de PS pour monter en niveau")
 
         self.mode = True
-        conso_supplementaire = - round(
-            0.5 * (exp(3 * self.niveau / 4) * (self.niveau != 0) - exp(3 * nouveau_niveau / 4)))
+        conso_supplementaire = - 0.5 * (exp(3 * self.niveau / 4) * (self.niveau != 0) - exp(3 * nouveau_niveau / 4))
         # Valeur positive
         # Permet de faire la différence s'il était à n'importe quel niveau au
         # début du tour d'initiative, et qu'il monte de niveau pendant le
         # sien
-        self.ps -= conso_supplementaire
-        self.conso = self.conso + conso_supplementaire
+        
+        self.ps -= round(conso_supplementaire)
+        self.conso = round(self.conso + conso_supplementaire)
         self.niveau = nouveau_niveau
         debit = int(self.niveau ** 2.33)
         print("Dressmond augmente son débit sanguin à " + str(debit) + " L/min")
@@ -840,7 +893,7 @@ class dressmond(vampire):
             print("Les vaisseaux sanguins de Dressmond explosent")
             print("Dressmond meurt")
         else:
-            print("Il consomme pour cela " + str(conso_supplementaire) + " PS")
+            print("Il consomme pour cela " + str(round(conso_supplementaire)) + " PS")
             print("Sa consommation est maintenant de " + str(self.conso) + " PS par tour")
             print("Dressmond est maintenant à " + str(self.ps) + " PS")
 
@@ -860,6 +913,7 @@ class dressmond(vampire):
                     print("Le sang jaillit même sous haute pression, provoquant des hémorragies internes et externes")
                     print("Dressmond consomme une importante quantité de sang")
 
+
     # Stopper le God End Mode et redescendre progressivement de niveau
     def stopmode(self):
         if not self.mode:
@@ -868,8 +922,9 @@ class dressmond(vampire):
         print("Dressmond cesse de maintenir son God End Mode")
         print("Le débit sanguin de Dressmond revient progressivement à la normale")
 
+
     # Utiliser une injection de drogue    
-    def injection(self, poche=False):
+    def injection(self, poche = False):
         if Dressmond.drogue == 0 and not poche:
             return ("Dressmond n'a plus d'injections")
         if not poche:
@@ -886,9 +941,85 @@ class dressmond(vampire):
         self.defuite()
         print("Dressmond est pris d'hallucinations et de vertiges pendant quelques minutes")
         print("Il doit rester immobile à terre ou assis les yeux et oreilles bouché(e)s jusqu'à fin de la condition")
-        Dressmond.get_stun(15, "Hallucinations et vertiges à cause de la drogue")
+
+        Dressmond.get_stun(15,"Hallucinations et vertiges à cause de la drogue")
 
 
+    # Déterminer la portée de l'AoE de Dressmond et les classes de distance
+    def aoe_range(self):
+        if self.niveau == 0:
+            raise erreur("Dressmond ne peut pas effectuer d'AoE au niveau 0")
+        else:
+            distance =round(0.23*exp(self.niveau))
+            print("Dressmond peut effectuer une AoE avec une portée de " + str(distance) + " mètres")
+            print("Ne pas oublier les pnjs dans la liste des cibles (serviteurs, sections, gardes,...)")
+            print("")
+            print("Proximité de 1 : Entre 0 et " + str(round(distance/3)) + " mètres")
+            print("Proximité de 2 : Entre " + str(round(distance/3)) + " et " + str(round(2*distance/3)) + " mètres")
+            print("Proximité de 3 : Entre " + str(round(2*distance/3)) + " et " + str(distance) + " mètres")
+ 
+          
+    # Faire une attaque de zone
+    def aoe(self, cibles):
+        # cibles est la liste des personnages à proximité sous forme de tuple
+            # (personnage, proximité) où la proximité est un nombre entre 1 et
+            # 3 qui représente la distance qui sépare la cible de Dressmond,
+            # appelé classe de distance (cf fonction aoe_range)
+        # On la redéfinit localement afin de pouvoir la modifier
+         
+        # Gestion des erreurs
+        if not isinstance(cibles, list):
+            raise erreur("L'argument doit être une liste")
+        for x in cibles :
+            if not isinstance(x, tuple):
+                raise erreur("La liste doit contenir des tuples sous la forme (perso,proximité)")
+        for (perso,proximite) in cibles:
+            if not isinstance(proximite, int) or proximite > 3 or proximite < 1:
+                raise erreur("La classe de proximité ne peut être que 1, 2 ou 3")
+            
+        # On compte le nombre de personnages (les pnj peuvent compter pour plusieurs)
+        nombre_cibles = 0
+        
+        for (perso, proximite) in cibles:
+            if isinstance(perso, pnj):
+                nombre_cibles += ceil(perso.ps / perso.ps_indiv)
+            else :
+                nombre_cibles += 1
+                
+        # On évalue les dégâts de Dressmond
+        total_degats = np.random.binomial(self.valeur_attaque,p)
+        print(total_degats) 
+
+        aoe_degats = total_degats / nombre_cibles
+        
+        # On applique les dégâts, en tenant compte de la diminution liée à la
+            # distance (inversement proportionnelle au carré)
+        # Il y a l'également un overkill : Tous les dommages de Dressmond doivent
+            # être répartis 
+        while total_degats > 0:
+            
+            # Étape 1 : On applique les dommages à tous les personnages
+            for (perso, proximite) in cibles :
+                if isinstance(perso, pnj):
+                    dommages = ceil((perso.ps/perso.ps_indiv) * aoe_degats * multiplicateur(proximite))
+                else:
+                    dommages = ceil(aoe_degats * multiplicateur(proximite))                    
+                if total_degats < dommages :
+                    dommages = total_degats
+                    
+                total_degats -= min(perso.ps, dommages)
+                Dressmond.degats(perso, dommages)
+             
+            # Étape 2 : On retire de la liste des cibles les personnages morts
+            decalage = 0
+            for i in range(len(cibles)):
+                if cibles[i - decalage][0].ps <= 0:
+                    cibles.remove(cibles[i - decalage])
+                    decalage += 1
+
+        
+
+# Classe de Min     
 class chrysalide(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                  valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
@@ -903,6 +1034,8 @@ class chrysalide(vampire):
         self.c4_vlad = c4_vlad
         # Booléens indiquant si les explosifs sont encore armés ou non
 
+    
+    # Pouvoir de Min pour convertir des PA en PS
     def conversion(self, PA):
         if self.pa == 0:
             print("Min n'a plus de PA")
@@ -918,7 +1051,10 @@ class chrysalide(vampire):
                 print("Min n'avait pas suffisament de PA, ainsi toute sa jauge a été convertie en PS")
                 print("Min a désormais " + str(self.pa) + " PA et " + str(self.ps) + " PS")
 
-    def explosion(self, est=False, ouest=False, vlad=False):
+
+    # Actionner les explosifs de Min
+    def explosion(self, est = False, ouest = False, vlad = False):
+        # Spécifier quel(s) explosif(s)
         if est:
             if self.c4_est:
                 self.c4_est = False
@@ -971,6 +1107,8 @@ class chrysalide(vampire):
                 print("L'explosif dans la chambre a déjà explosé ou ne répond plus")
 
 
+
+# Classe d'Alec
 class demi(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                  valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
@@ -980,15 +1118,17 @@ class demi(vampire):
                          valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
                          stun, stun_raison, etourdi, etourdi_tour, lien, maudit, date_reveil, fuite)
         self.munitions = munitions
-        # Balles en argent
+        # Munitions du pistolet en argent d'Alec
         self.batterie = batterie
         # Durée de batterie restante pour sa lampe à UV
         self.switch = switch
-        # Booléan indiquant si la lampe est allumée ou non
+        # Booléen indiquant si la lampe est allumée ou non
         self.prelevements = prelevements
-        # Echantillons d'analyse d'Alec
+        # Echantillons du kit d'analyse d'Alec
 
 
+
+# Classe de Crowe (Pharacibr)
 class derniere_main(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                  valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
@@ -1000,9 +1140,10 @@ class derniere_main(vampire):
         self.arme_valeur = arme_valeur
         # S'il possède une arme et si oui, son nombre de PS
 
-    # Parasitisme de Pharacibr
+
+    # Capacité de parasitisme de Pharacibr
     def parasite(self, cible, influence, ps):
-        # influence est pensée, idée ou action en str
+        # influence est : 'pensée', 'idée' ou 'action' en str
 
         if ps > 10:
             raise erreur("Le maximum de PS est de 10 pour ce pouvoir")
@@ -1014,7 +1155,6 @@ class derniere_main(vampire):
         self.depense(ps=ps)
 
         chance = (ps / 10) * exp(cible.generation / 3) / 2
-
         if (influence == "idee") or (influence == "idée"):
             chance = chance / 2
         if (influence == "action"):
@@ -1022,11 +1162,13 @@ class derniere_main(vampire):
 
         succes = random()
 
+        # Échec sur Aleister à cause de son sens du devoir
         if cible.nom == "Aleister":
             print("La capacité semble avoir échouée mais Aleister ne devrait avoir rien remarqué")
-
+           
+        # À cause de l'assimilation de Min, la capacité marche toujours
+        # Les instructions ne sont pas toujours bien comprises à cause de son omission
         elif cible.nom == "Min":
-            # À cause de l'assimilation de Min, la capacité marche toujours, les instructions ne sont pas toujours bien comprises
             if random < 1 / 3:
                 print("La capacité semble avoir réussie")
                 print("MJ : Aller communiquer à Min l'instruction de Crowe")
@@ -1044,27 +1186,28 @@ class derniere_main(vampire):
                 print(
                     "MJ : Aller informer " + cible.nom + " qu'il ou elle a senti quelque chose s'infiltrer dans son corps et tenter de l'influencer")
 
+
     # Création d'une arme de sang
     def arme(self, ps):
         if ps > 5:
             raise erreur("Le maximum de PS est de 5 pour ce pouvoir")
-
         self.depense(ps=ps)
         self.arme_valeur = ps
         print("Crowe fait apparaître une arme de sang")
+
 
     # Création de liens de sang
     def liens(self, cible, ps):
         if ps > 5:
             raise erreur("Le maximum de PS est de 5 pour ce pouvoir")
-
         self.depense(ps=ps)
-
         cible.lien = ps
         print("Des liens de sang restreignent maintenant " + cible.nom)
         cible.defuite()
 
 
+
+# Classe de Vania
 class mezsaros(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                  valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
@@ -1073,7 +1216,8 @@ class mezsaros(vampire):
                          valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
                          stun, stun_raison, etourdi, etourdi_tour, lien, maudit, date_reveil, fuite)
 
-    # Fonction pour invoquer des loups
+
+    # Fonction pour invoquer un familier loup
     def familier(self, ps):
         if ps < 10:
             raise erreur("Le coût minimum est de 10 PS")
@@ -1093,6 +1237,7 @@ class mezsaros(vampire):
             Loup.vitalite = ps
 
 
+
 # Classe du loup de Vania
 class loup(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
@@ -1104,6 +1249,8 @@ class loup(vampire):
         self.existe = existe
 
 
+
+# Classe d'Aleister
 class simonis(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                  valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
@@ -1113,43 +1260,54 @@ class simonis(vampire):
                          valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
                          stun, stun_raison, etourdi, etourdi_tour, lien, maudit, date_reveil, fuite)
         self.transexistence = transexistence
+        # Liste des objets auxquels il est lié
         self.target = target
-        # target est la cible du pouvoir de la justice d'Aleister
+        # Cible de la justice
 
-    # Porter une attaque à un autre joueur
-    def attaque(self, cible, classe=None, surprise=False, rapiere=True):
 
-        # Pour un vampire attaquant, il doit faire une prédiction du type vampire de sa cible
+    # Fonction d'attaque d'Aleister prenant en compte sa rapière par défaut
+    def attaque(self, cible, classe = None, surprise = False, nombre = 1, rapiere = True):
+        # Le vampire attaquant doit faire une prédiction du type vampire de sa cible
         # La classe est la prédiction de l'attaquant sur la classe de sa cible
         # Il faut entrer le nombre correspond à la classe
-        # Un vampire défendant n'a cependant pas cette obligation et peut simplement attaquer sans préciser
+        # Un vampire défendant n'a cependant pas cette obligation et il n'y a
+            # pas besoin de préciser cet argument qui est est nul par défaut
 
-        # Ici, si et seulement si le vampire attaque, cela pourra modifier sa valeur d'avantage ou désavantage.
-        # En effet, un vampire défendant ne peut pas prendre par surprise son adversaire
-        # Avantage peut être +1, -1 ou revenir à 0
-        avantage = surprise + (classe is not None) * (classe == cible.classe - 1)
-
-        if avantage == 0:
-            dommages = np.random.binomial(self.valeur_attaque + 2 * rapiere, p)
-        if avantage > 0:
-            dommages = max(np.random.binomial(self.valeur_attaque + 2 * rapiere, p),
-                           np.random.binomial(self.valeur_attaque + 2 * rapiere, p))
-        if avantage < 0:
-            dommages = min(np.random.binomial(self.valeur_attaque + 2 * rapiere, p),
-                           np.random.binomial(self.valeur_attaque + 2 * rapiere, p))
-
+        # Surprise permet de préciser si le vampire attaquant a un avantage 
+            # de type surprise, stratégique ou autre ...
+        # Cela pourra modifier sa valeur d'avantage ou désavantage.
+        # En fonction de son éventuelle prédiction, il peut également avoir un désavantage
+        # Avantage peut être +1, -1 ou revenir à 0  
+        
+        dommages_tot = 0
+        # Attaques multiples
+        for _ in range(nombre):
+            dommages = 0
+            avantage = surprise + (classe is not None) * (classe == cible.classe - 1)
+        
+            if avantage == 0:
+                dommages = np.random.binomial(self.valeur_attaque + 2 * rapiere, p)
+            if avantage > 0:
+                dommages = max(np.random.binomial(self.valeur_attaque + 2 * rapiere, p),
+                               np.random.binomial(self.valeur_attaque + 2 * rapiere, p))
+            if avantage < 0:
+                dommages = min(np.random.binomial(self.valeur_attaque + 2 * rapiere, p),
+                               np.random.binomial(self.valeur_attaque + 2 * rapiere, p))
+        
+            # Cas si Crowe a une arme de sang (attaqué)
+            if isinstance(cible, derniere_main):
+                if dommages >= cible.arme_valeur:
+                    arme_dispell()
+                    
+            dommages_tot += dommages
+                    
         # On applique les dégâts
-        self.degats(cible, dommages)
+        self.degats(cible, dommages_tot)
 
-        # Cas si Crowe a une arme de sang (attaqué)
-        if isinstance(cible, derniere_main):
-            if dommages >= cible.arme_valeur:
-                arme_dispell()
 
     # Regard froid d'Aleister
     def regard(self, cible, ps=False):
         # ps permet de dire si Aleister paye avec des ps
-
         if cible.generation == 0:
             raise erreur("Aleister ne parvient pas à utiliser cette capacité")
 
@@ -1171,21 +1329,20 @@ class simonis(vampire):
             self.depense(pa=cout)
             print("La capacité est efficace")
 
+
     # Aleister se lie avec un objet
     def link(self, objet, ps=False):
         # ps permet de dire si Aleister paye avec des ps
         cout = 1 + (1 + len(self.transexistence)) ** 2
-
         if ps:
             self.depense(ps=cout)
             self.transexistence.append(objet)
             print("Aleister s'est maintenant lié avec l'objet : " + objet)
-
-
         else:
             self.depense(pa=cout)
             self.transexistence.append(objet)
             print("Aleister s'est maintenant lié avec l'objet : " + objet)
+
 
     # Aleister se délie avec un objet
     def delink(self, objet):
@@ -1194,6 +1351,7 @@ class simonis(vampire):
         else:
             self.transexistence.remove(objet)
             print("Aleister a rompu le lien avec l'objet : " + objet)
+
 
     # Let Justice Be Done, Though The Heavens Fall
     def justice(self, cible):
@@ -1209,6 +1367,7 @@ class simonis(vampire):
                 print(
                     "Aleister sent toutefois son coeur se serrer dans sa poitrine et lui donner une sensation extrêmement désagréable doublée d'un très mauvais pressentiment. Utiliser ce pouvoir sur Dressmond est absolument terrifiant et lui glace le sang.")
 
+
     # Rompre ce lien    
     def dejustice(self):
         if self.target is None:
@@ -1218,6 +1377,8 @@ class simonis(vampire):
             self.target = None
 
 
+
+# Classe des PNJs (Serviteurs, Gardes Hivernaux, Demi-Vampires, Sections de la Dernière main)
 class pnj(vampire):
     def __init__(self, nom, ps, ps0, pa, groupe, classe, generation, rang, vitalite,
                  valeur_attaque, initiative, infecte, date_infection, date_mort, force_infection,
@@ -1229,65 +1390,75 @@ class pnj(vampire):
         self.ps_indiv = ps_indiv
         # Ici, ps est le nombre de ps total de l'armée. ps_indiv code celui d'un individu
         self.combat = combat
-        # combat est un booléan indiquant si les pnj sont en combat
+        # combat est un booléen indiquant si les pnj sont en combat
 
-    # Porter une attaque à un autre joueur
-    def attaque(self, cible, classe=None, surprise=False):
-
-        # Pour un vampire attaquant, il doit faire une prédiction du type vampire de sa cible
+    # Fonction d'attaque pour les PNJs avec un plafond de dégâts à cause de l'espace limité, sauf contre les autres PNJs
+    def attaque(self, cible, classe = None, surprise = False, nombre = 1):
+        # Le vampire attaquant doit faire une prédiction du type vampire de sa cible
         # La classe est la prédiction de l'attaquant sur la classe de sa cible
         # Il faut entrer le nombre correspond à la classe
-        # Un vampire défendant n'a cependant pas cette obligation et peut simplement attaquer sans préciser
+        # Un vampire défendant n'a cependant pas cette obligation et il n'y a
+            # pas besoin de préciser cet argument qui est est nul par défaut
 
-        # Ici, si et seulement si le vampire attaque, cela pourra modifier sa valeur d'avantage ou désavantage.
-        # En effet, un vampire défendant ne peut pas prendre par surprise son adversaire
-        # Avantage peut être +1, -1 ou revenir à 0
+        # Surprise permet de préciser si le vampire attaquant a un avantage 
+            # de type surprise, stratégique ou autre ...
+        # Cela pourra modifier sa valeur d'avantage ou désavantage.
+        # En fonction de son éventuelle prédiction, il peut également avoir un désavantage
+        # Avantage peut être +1, -1 ou revenir à 0  
+        
         avantage = surprise + (classe is not None) * (classe == cible.classe - 1)
 
-        if avantage == 0:
-            dommages = np.random.binomial(self.valeur_attaque, p)
-        if avantage > 0:
-            dommages = max(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
-        if avantage < 0:
-            dommages = min(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
-
-
-            # Dégats de masse contre des autres pnjs
-        if isinstance(cible, pnj):
-            dommages *= ceil(self.ps / self.ps_indiv)
-        else:
-            # Sinon, dégats doublés pour représenter l'encerclement et le fait de se faire attaquer par une "armée"
-            if ceil(self.ps / self.ps_indiv) >= 2:
-                dommages *= 2
+        dommages_tot = 0
+        # Attaques multiples
+        for _ in range(nombre):
+            dommages = 0
+            if avantage == 0:
+                dommages = np.random.binomial(self.valeur_attaque, p)
+            if avantage > 0:
+                dommages = max(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
+            if avantage < 0:
+                dommages = min(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
+    
+            # Dégats de masse contre d'autres pnjs
+            if isinstance(cible, pnj):
+                dommages *= ceil(self.ps / self.ps_indiv)
+            else:
+                # Sinon, dégats doublés pour représenter l'encerclement et le fait de se faire attaquer par une "armée"
+                if ceil(self.ps / self.ps_indiv) >= 2:
+                    dommages *= 2
+                    
+            # Cas si Crowe a une arme de sang (attaqué)
+            if isinstance(cible, derniere_main):
+                if dommages >= cible.arme_valeur:
+                    arme_dispell()
+                    
+            dommages_tot += dommages
 
         # On applique les dégâts
         self.degats(cible, dommages)
 
-        # Cas si Crowe a une arme de sang (attaqué)
-        if isinstance(cible, derniere_main):
-            if dommages >= cible.arme_valeur:
-                arme_dispell()
 
     # Faire arriver un pnj en phase de combat
     def engage(self):
         self.combat = True
         print(self.nom + " entre en combat")
 
+
     # Faire désengager des pnj du combat
     def desengage(self):
         self.combat = False
         print(self.nom + " se retirent du combat")
 
+
     # Séparer un groupe de pnj
     def separate(self, nombre, nom):
         # nombre est le nombre de pnj qu'on souhaite détacher
-        global pnj_temp_num
-        pnj_temp_num += 1
-
         new_ps = nombre * self.ps_indiv
         self.depense(ps=new_ps)
 
-        temp = pnj(nom=nom, ps=new_ps, ps0=new_ps, pa=self.pa,
+        global liste_pnj
+        liste_pnj.append(
+                pnj(nom=nom, ps=new_ps, ps0=new_ps, pa=self.pa,
                    groupe=self.groupe, classe=self.classe,
                    generation=self.generation, rang=self.rang,
                    vitalite=self.vitalite, valeur_attaque=self.valeur_attaque,
@@ -1298,29 +1469,26 @@ class pnj(vampire):
                    stun_raison=self.stun_raison,
                    etourdi=self.etourdi, etourdi_tour=self.etourdi_tour,
                    lien=self.lien, maudit=self.maudit,
-                   date_reveil=self.date_reveil, ps_indiv=self.ps_indiv,
-                   combat=self.combat)
+                   date_reveil=self.date_reveil, fuite = self.fuite,
+                   ps_indiv=self.ps_indiv, combat=self.combat)
+                )
 
-        exec('pnj_' + str(pnj_temp_num) + ' = ' + 'temp')
-        print("Nom du pnj créé :")
-        print("pnj_" + str(pnj_temp_num))
-        exec('liste_pnj.append(' + 'pnj_' + str(pnj_temp_num) + ')')
-        print("Veuillez entrer la commande suivante :")
-        print("pnj_" + str(pnj_temp_num) + "=liste_pnj[-1]")
-
-
+        globals()[nom] = liste_pnj[-1]
+        
+        
+        
+# Fonctions globales
+        
 # Faire le regain de PA en utilisant la méthode
 def regain():
     liste = [Vania, Crowe, Min, Aleister, Dressmond, Alec]
-
     for perso in liste:
         perso.regain()
 
 
-# Déterminer l'ordre d'initiative pour un round de combat     
+# Déterminer l'ordre d'initiative et le nombre d'attaques pour un round de combat    
 def initiative():
     global liste_pnj
-
     liste = [Vania, Crowe, Min, Aleister, Dressmond, Alec]
 
     if Loup.existe:
@@ -1335,6 +1503,7 @@ def initiative():
 
     # On décompte l'immobilisation éventuelles des persos
     for perso in liste:
+        # Par défaut, on ne retire pas un personnage de la liste
         passe = False
         if perso.ps <= 0:
             print(perso.nom + " est mort")
@@ -1363,10 +1532,12 @@ def initiative():
 
                 else:
                     print(perso.nom + " est inconscient")
+                    
+        # Si un personnage avait une condition, il ne fait pas partie de la liste d'initiative
         if passe:
             liste.remove(perso)
 
-    # On decrease le niveau de Dressmond si besoin
+    # On diminue le niveau de Dressmond si besoin
     if (Dressmond.niveau >= 1) and not Dressmond.mode:
         Dressmond.niveau -= 1
         print("Dressmond redescend au niveau " + str(Dressmond.niveau))
@@ -1377,44 +1548,32 @@ def initiative():
         if Dressmond.niveau == 0:
             Dressmond.conso = 0
 
+    # Consommation de PS de Dressmond
     if Dressmond.mode or Dressmond.niveau >= 1:
         Dressmond.conso = int(0.5 * exp(3 * Dressmond.niveau / 4))
         Dressmond.ps -= Dressmond.conso
         print("Dressmond pert " + str(Dressmond.conso) + " PS")
-
+        
         if Dressmond.ps <= 0:
             Dressmond.ps = 0
             Dressmond.mode = False
             print("Dressmond meurt de ses blessures")
         else:
             print("Dressmond est maintenant à " + str(Dressmond.ps) + "PS")
-
             if Dressmond.ps <= 0.25 * Dressmond.ps0:
                 print("Dressmond est mal en point")
-
-    # On comptabilise le temps vécu par le virus à l'intérieur de Dressmond (accélération du temps)
-    # Si le temps dépasse 24h, le virus est évacué
-    if Dressmond.infecte:
-        Dressmond.elimination_virus += Dressmond.conso / 12
-
-        if Dressmond.elimination_virus >= 24:
-            print("Dressmond et sa régénération finissent par guérir du virus")
-            Dressmond.elimination_virus = 0
-            Dressmond.infecte = False
-            Dressmond.date_infection = None
-            Dressmond.date_mort = None
-            Dressmond.force_infection = 0
-
+                
     init = [np.random.binomial(perso.initiative, p) for perso in liste]
 
     joueurs = [perso.nom for perso in liste]
 
+    # Afficher les joueurs dans l'ordre d'initiative décroissante
     ordre = [(perso, init_valeur) for init_valeur, perso in sorted(zip(init, joueurs), reverse=True)]
-
     print("L'ordre d'initiative est le suivant :")
     print("Syntaxe : Perso (nombre d'attaques)")
     print("")
 
+    # Nombre d'attaques
     for (perso, init_valeur) in ordre:
         if isinstance(perso, dressmond):
             nombre_attaques = 1
@@ -1424,6 +1583,7 @@ def initiative():
 
     print("")
     print("MJ : Ne pas oublier d'utiliser la commande agir() pour chaque personnage")
+    print("Elle permet de prendre en compte les immobilisations et la fuite")
 
 
 # Eteindre la lampe à UV
@@ -1466,6 +1626,7 @@ def mensonge():
     Aleister.defuite()
     Aleister.target.defuite()
 
+    # Cas particulier avec Dressmond
     if isinstance(Aleister.target, dressmond):
         print("Le coeur d'Aleister inplose. Ce dernier fait une crise cardiaque et du sang innonde son corps")
         Aleister.ps -= 40
@@ -1473,34 +1634,28 @@ def mensonge():
             print("Aleister meurt")
         else:
             print("Aleister se relève quelques minutes plus tard")
-            print(
-                "Aleister est pris d'une peur intense envers Dressmond et sa puissance monstrueuse, qui est probablement la cause de cette dégénération")
+            print( "Aleister est pris d'une peur intense envers Dressmond et sa puissance monstrueuse, qui est probablement la cause de cette dégénération")
             if Aleister.ps < 0.25 * Aleister.ps0:
                 print("Aleister est mal en point")
-
-        if Aleister.target.nom == "Dressmond":
-            if Dressmond.niveau != 0:
-                Dressmond.niveau = 0
-                Dressmond.mode = False
-                Dressmond.valeur_attaque = Dressmond.valeur_attaque0
-                Dressmond.initiative = Dressmond.initiative0
-                Dressmond.conso = 0
-                print("Dressmond fait une crise cardiaque, ce qui arrête son corps quelques secondes")
-                print("Son coeur redémarre cependant très rapidement")
-                print("Toutefois, cela a complètement réinitialisé son God End Mode")
-            else:
-                Dressmond.ps -= 1
-                if Dressmond.ps <= 0:
-                    print("Dressmond meurt")
-                elif Dressmond.ps < 0.25 * Dressmond.ps0:
-                    print("Dressmond est mal en point")
-
-
-                    # Faire réinitialisation du God End Mode de Dressmond. Si il ne l'a pas, ça ne fait rien.
-                    # Sinon ca fait genre il se calme.
+                
+        # Réinitialisation du God End Mode de Dressmond
+        if Dressmond.niveau != 0:
+            Dressmond.niveau = 0
+            Dressmond.mode = False
+            Dressmond.valeur_attaque = Dressmond.valeur_attaque0
+            Dressmond.initiative = Dressmond.initiative0
+            Dressmond.conso = 0
+            print("Dressmond fait une crise cardiaque, ce qui arrête son corps quelques secondes")
+            print("Son coeur redémarre cependant très rapidement")
+            print("Toutefois, cela a complètement réinitialisé son God End Mode")
+        else:
+            Dressmond.ps -= 1
+            if Dressmond.ps <= 0:
+                print("Dressmond meurt")
+            elif Dressmond.ps < 0.25 * Dressmond.ps0:
+                print("Dressmond est mal en point")
 
     else:
-
         print("Aleister et " + Aleister.target.nom + " sont pris d'une crise cardiaque")
 
         Aleister.ps -= Aleister.vitalite
@@ -1523,27 +1678,27 @@ def mensonge():
 
 
 # Tenter de désamorcer un explosif de Min
-def defuse(est=False, ouest=False, vlad=False):
+def defuse(est = False, ouest = False, vlad = False):
     if est:
         if random() < 0.25:
             print("L'explosif est désamorcé")
             Min.c4_est = False
         else:
-            Min.explosion(est=True)
+            Min.explosion(est = True)
 
     if ouest:
         if random() < 0.25:
             print("L'explosif est désamorcé")
             Min.c4_ouest = False
         else:
-            Min.explosion(ouest=True)
+            Min.explosion(ouest = True)
 
     if vlad:
         if random() < 0.25:
             print("L'explosif est désamorcé")
             Min.c4_vlad = False
         else:
-            Min.explosion(vlad=True)
+            Min.explosion(vlad = True)
 
 
 # Connaitre l'état des joueurs infectés par le virus
@@ -1556,7 +1711,7 @@ def virus():
             print("")
 
 
-# Connaître le type associé à son code (chiffre)
+# Connaître le type associé à un code (chiffre)
 def classe(nombre):
     L = [1, 2, 4, 0, 0.5]
     if nombre not in L:
@@ -1575,207 +1730,293 @@ def classe(nombre):
 
 # Fonctions de relativité pour Dressmond
 c = 3.0 * (10 ** 8)
-
-
 def gamma_to_beta(gamma):
     return sqrt(1 - (1 / (gamma ** 2)))
-
-
 def derelat(v):
     e_k = (v ** 2) / 2
     gamma = max(1, 1 + (e_k / (c ** 2)))
     if gamma <= 1.00001:
         return v
     beta = gamma_to_beta(gamma)
-    return min(v, beta * c)
+    return min(v, beta*c)
 
 
+# Transformer la proximité en multiplicateur de dégâts causé par la disance de l'AoE de Dressmond
+def multiplicateur(proximite):
+    if proximite == 1:
+        return(1)
+    elif proximite == 2:
+        return(0.5)
+    elif proximite == 3:
+        return(0.1)
+    else :
+        raise erreur("La classe de proximité ne peut être que 1, 2 ou 3")
+
+
+# Faire passer le temps
+def timeskip(minutes):  
+    # Liste d'attente rassemblant les personnages devant attendre la fin de leurs conditions
+    liste_attente = [Vania, Alec, Crowe, Aleister, Min, Dressmond]
+    if Loup.existe:
+        liste_attente = liste_attente + [Loup]
+    liste_attente = liste_attente + liste_pnj
+    temps = 0
+    
+    while minutes > 0 and len(liste_attente) > 0 :
+        initiative()
+        decalage = 0
+        minutes -= 0.2
+        temps += 0.2
+        for i in range(len(liste_attente)):
+            perso =liste_attente[i - decalage]
+            # Tout est pris en compte par initiative(), sauf la fuite
+            if perso.fuite is not None:
+                if perso.fuite == 1:
+                    perso.fuite = None
+                    print(perso.nom + " a réussi à fuir")
+                    if isinstance(perso, pnj):
+                        perso.desengage()
+                else:
+                    perso.fuite -= 1
+                    print(perso.nom + " essaye de fuir, ses actions sont limitées à cette fin")
+                 
+            if perso.etourdi == 0 and perso.stun == 0 and perso.fuite == None :
+                liste_attente.remove(perso)
+                decalage += 1
+                
+    if len(liste_attente) > 0 :            
+        print("Les personnages suivants ne peuvent toujours pas agir :")
+        for perso in liste_attente:
+            print(perso.nom)
+            
+    print("Temps écoulé : " + str(round(temps)) + " minutes")
+       
+        
 # Faire une sauvegarde des objets
 def save():
-    with open("Vania.file", "wb") as f:
-        pickle.dump(Vania, f, pickle.HIGHEST_PROTOCOL)
-    with open("Alec.file", "wb") as f:
-        pickle.dump(Alec, f, pickle.HIGHEST_PROTOCOL)
-    with open("Crowe.file", "wb") as f:
-        pickle.dump(Crowe, f, pickle.HIGHEST_PROTOCOL)
-    with open("Aleister.file", "wb") as f:
-        pickle.dump(Aleister, f, pickle.HIGHEST_PROTOCOL)
-    with open("Min.file", "wb") as f:
-        pickle.dump(Min, f, pickle.HIGHEST_PROTOCOL)
-    with open("Dressmond.file", "wb") as f:
-        pickle.dump(Dressmond, f, pickle.HIGHEST_PROTOCOL)
-    with open("Loup.file", "wb") as f:
-        pickle.dump(Loup, f, pickle.HIGHEST_PROTOCOL)
-    with open("liste_pnj.file", "wb") as f:
-        pickle.dump(liste_pnj, f, pickle.HIGHEST_PROTOCOL)
-    with open("poches.file", "wb") as f:
-        pickle.dump(poches, f, pickle.HIGHEST_PROTOCOL)
-    with open("temps_debut.file", "wb") as f:
-        pickle.dump(temps_debut, f, pickle.HIGHEST_PROTOCOL)
-    with open("Lance_pouvoirs.file", "wb") as f:
-        pickle.dump(Lance_pouvoirs, f, pickle.HIGHEST_PROTOCOL)
-    with open("pnj_temp_num.file", "wb") as f:
-        pickle.dump(pnj_temp_num, f, pickle.HIGHEST_PROTOCOL)
+    try :
+        with open("Vania.file", "wb") as f:
+            pickle.dump(Vania, f, pickle.HIGHEST_PROTOCOL)
+        with open("Alec.file", "wb") as f:
+            pickle.dump(Alec, f, pickle.HIGHEST_PROTOCOL)
+        with open("Crowe.file", "wb") as f:
+            pickle.dump(Crowe, f, pickle.HIGHEST_PROTOCOL)
+        with open("Aleister.file", "wb") as f:
+            pickle.dump(Aleister, f, pickle.HIGHEST_PROTOCOL)
+        with open("Min.file", "wb") as f:
+            pickle.dump(Min, f, pickle.HIGHEST_PROTOCOL)
+        with open("Dressmond.file", "wb") as f:
+            pickle.dump(Dressmond, f, pickle.HIGHEST_PROTOCOL)
+        with open("Loup.file", "wb") as f:
+            pickle.dump(Loup, f, pickle.HIGHEST_PROTOCOL)
+        with open("liste_pnj.file", "wb") as f:
+            pickle.dump(liste_pnj, f, pickle.HIGHEST_PROTOCOL)
+        with open("poches.file", "wb") as f:
+            pickle.dump(poches, f, pickle.HIGHEST_PROTOCOL)
+        with open("temps_debut.file", "wb") as f:
+            pickle.dump(temps_debut, f, pickle.HIGHEST_PROTOCOL)
+        with open("Lance_pouvoirs.file", "wb") as f:
+            pickle.dump(Lance_pouvoirs, f, pickle.HIGHEST_PROTOCOL)
+        print("Données sauvegardées")
+    except :
+        print("Aucune données à sauvegarder")
+        
+        
+# Charger une sauvegarde des objets
+def load():
+    demande = input("Voulez-vous charger la dernière sauvegarde des objets ? ")
+    if demande == "Oui" :
+        confirmation= input("Êtes-vous sûr ? Cela effacera les données actuelles. ")
+        if confirmation == "Oui":
+            with open("Vania.file", "rb") as f:
+                global Vania
+                Vania = pickle.load(f)
+            with open("Alec.file", "rb") as f:
+                global Alec
+                Alec = pickle.load(f)
+            with open("Crowe.file", "rb") as f:
+                global Crowe
+                Crowe = pickle.load(f)
+            with open("Aleister.file", "rb") as f:
+                global Aleister
+                Aleister = pickle.load(f)
+            with open("Min.file", "rb") as f:
+                global Min
+                Min = pickle.load(f)
+            with open("Dressmond.file", "rb") as f:
+                global Dressmond
+                Dressmond = pickle.load(f)
+            with open("Loup.file", "rb") as f:
+                global Loup
+                Loup = pickle.load(f)
+            with open("liste_pnj.file", "rb") as f:
+                global liste_pnj
+                liste_pnj = pickle.load(f)
+            with open("poches.file", "rb") as f:
+                global poches
+                poches= pickle.load(f)
+            with open("temps_debut.file", "rb") as f:
+                global temps_debut
+                temps_debut = pickle.load(f)
+            with open("Lance_pouvoirs.file", "rb") as f:
+                global Lance_pouvoirs
+                Lance_pouvoirs = pickle.load(f)
+                
+            # Recharger les PNJs supplémentaires qui ont été créés
+            for i in range(6, len(liste_pnj)):
+                pnj = liste_pnj[i]
+                globals()[pnj.nom] = pnj
+                
+                
+# Initialiser la murder
+def initialisation():
+    demande = input("Voulez-vous faire débuter la murder ? S'il existe des données actuelles, elles seront sauvegardées puis réinitialisées ")    
+    if demande == "Oui":       
+        save()
+        
+        # Supprimer les PNJs supplémentaires qui avaient été créés
+        # Ils sont sauvegardés dans la liste, et seront re-créés lors du load()
+        global liste_pnj
+        try :
+            for i in range(6, len(liste_pnj)):
+                globals()[liste_pnj[i].nom] = None
+        except :
+            pass
+        
+        global p
+        # coefficient p de la loi binomiale
+        p = 0.6 
+        global pa_max
+        pa_max = 20
 
+        global Vania
+        Vania = mezsaros(nom="Vania", ps=500, ps0=500, pa=pa_max, groupe="AB", classe=4,
+                         generation=3, rang=1, vitalite=5, valeur_attaque=4, initiative=15,
+                         infecte=True, date_infection=None, date_mort=None, force_infection=0, stun=0,
+                         stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None)
 
-## Charger la sauvegarde
-# with open("Vania.file", "rb") as f:
-#    Vania = pickle.load(f)
-# with open("Alec.file", "rb") as f:
-#    Alec = pickle.load(f)
-# with open("Crowe.file", "rb") as f:
-#    Crowe = pickle.load(f)
-# with open("Aleister.file", "rb") as f:
-#    Aleister = pickle.load(f)
-# with open("Min.file", "rb") as f:
-#    Min = pickle.load(f)
-# with open("Dressmond.file", "rb") as f:
-#    Dressmond = pickle.load(f)
-# with open("Loup.file", "rb") as f:
-#    Loup = pickle.load(f)
-# with open("liste_pnj.file", "rb") as f:
-#    liste_pnj = pickle.load(f)
-# with open("poches.file", "rb") as f:
-#    poches= pickle.load(f)
-# with open("temps_debut.file", "rb") as f:
-#    temps_debut = pickle.load(f)
-# with open("Lance_pouvoirs.file", "rb") as f:
-#    Lance_pouvoirs = pickle.load(f)
-# with open("pnj_temp_num.fil", "rb") as f:
-#    pnj_temp_num = pickle.load(f)
+        global Alec
+        Alec = demi(nom="Alec", ps=30, ps0=30, pa=pa_max, groupe="B", classe=0.5,
+                    generation=7, rang=7, vitalite=1, valeur_attaque=4, initiative=2,
+                    infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                    stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
+                    munitions=9, batterie=300, switch=False, prelevements=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
+        global Crowe
+        Crowe = derniere_main(nom="Crowe", ps=80, ps0=80, pa=pa_max, groupe="O", classe=4,
+                              generation=5, rang=5, vitalite=3, valeur_attaque=8, initiative=10,
+                              infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                              stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                              fuite=None,
+                              arme_valeur=None)
 
+        global Aleister
+        Aleister = simonis(nom="Aleister", ps=130, ps0=130, pa=pa_max, groupe="AB", classe=0,
+                           generation=4, rang=4, vitalite=4, valeur_attaque=8, initiative=6,
+                           infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                           stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                           fuite=None,
+                           transexistence=[], target=None)
 
+        global Min
+        Min = chrysalide(nom="Min", ps=150, ps0=150, pa=pa_max, groupe="O", classe=2,
+                         generation=5, rang=5, vitalite=5, valeur_attaque=6, initiative=8,
+                         infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                         stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                         fuite=None, antidote=True,
+                         c4_est=True, c4_ouest=True, c4_vlad=True)
 
+        global Dressmond
+        Dressmond = dressmond(nom="Dressmond", ps=1500, ps0=1500, pa=pa_max, groupe="A", classe=1,
+                              generation=4, rang=1, vitalite=10, valeur_attaque=30,
+                              initiative=4, infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                              stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                              fuite=None,
+                              valeur_attaque0=30, initiative0=4, niveau=0, mode=False, conso=0, drogue=2)
 
+        global Loup
+        Loup = loup(nom="Loup", ps=0, ps0=0, pa=0, groupe="AB", classe=4,
+                    generation=4, rang=4, vitalite=0, valeur_attaque=int(0 / 10), initiative=int(0 / 10),
+                    infecte=True, date_infection=None, date_mort=None, force_infection=0,
+                    stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
+                    existe=False)
 
-""" Initialisation de la murder """
-# Ne faire tourner cette section qu'une seule fois, à l'heure de début de la murder 
-# À laisser en commentaires
+        global Serviteurs
+        Serviteurs = pnj(nom="Serviteurs", ps=210, ps0=210, pa=pa_max, groupe="B", classe=0,
+                         generation=6, rang=6, vitalite=3, valeur_attaque=3, initiative=3,
+                         infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                         stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                         fuite=None,
+                         ps_indiv=30, combat=False)
 
-p = 0.6  # coefficient p de la loi binomiale
-pa_max = 20
+        global Gardes
+        Gardes = pnj(nom="Gardes", ps=750, ps0=750, pa=pa_max, groupe="AB", classe=2,
+                     generation=6, rang=6, vitalite=5, valeur_attaque=5, initiative=5,
+                     infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                     stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                     fuite=None,
+                     ps_indiv=50, combat=False)
 
-Vania = mezsaros(nom="Vania", ps=500, ps0=500, pa=pa_max, groupe="AB", classe=4,
-                 generation=3, rang=1, vitalite=5, valeur_attaque=4, initiative=15,
-                 infecte=True, date_infection=None, date_mort=None, force_infection=0, stun=0,
-                 stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None)
+        global Demis
+        Demis = pnj(nom="Demis", ps=850, ps0=550, pa=pa_max, groupe="A", classe=0.5,
+                    generation=7, rang=7, vitalite=2, valeur_attaque=3, initiative=3,
+                    infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                    stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
+                    ps_indiv=17, combat=False)
 
-Alec = demi(nom="Alec", ps=30, ps0=30, pa=pa_max, groupe="B", classe=0.5,
-            generation=7, rang=7, vitalite=1, valeur_attaque=4, initiative=2,
-            infecte=False, date_infection=None, date_mort=None, force_infection=0,
-            stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
-            munitions=9, batterie=300, switch=False, prelevements=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        global Section1
+        Section1 = pnj(nom="Section 1", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
+                       generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
+                       infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                       stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                       fuite=None,
+                       ps_indiv=30, combat=False)
 
-Crowe = derniere_main(nom="Crowe", ps=80, ps0=80, pa=pa_max, groupe="O", classe=4,
-                      generation=5, rang=5, vitalite=3, valeur_attaque=8, initiative=10,
-                      infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                      stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                      fuite=None,
-                      arme_valeur=None)
+        global Section2
+        Section2 = pnj(nom="Section 2", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
+                       generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
+                       infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                       stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                       fuite=None,
+                       ps_indiv=30, combat=False)
 
-Aleister = simonis(nom="Aleister", ps=130, ps0=130, pa=pa_max, groupe="AB", classe=0,
-                   generation=4, rang=4, vitalite=4, valeur_attaque=8, initiative=6,
-                   infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                   stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                   fuite=None,
-                   transexistence=[], target=None)
+        global Section3
+        Section3 = pnj(nom="Section 3", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
+                       generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
+                       infecte=False, date_infection=None, date_mort=None, force_infection=0,
+                       stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
+                       fuite=None,
+                       ps_indiv=30, combat=False)
 
-Min = chrysalide(nom="Min", ps=150, ps0=150, pa=pa_max, groupe="O", classe=2,
-                 generation=5, rang=5, vitalite=5, valeur_attaque=6, initiative=8,
-                 infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                 stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                 fuite=None, antidote=True,
-                 c4_est=True, c4_ouest=True, c4_vlad=True)
+        liste_pnj = [Serviteurs, Gardes, Demis, Section1, Section2, Section3]
 
-Dressmond = dressmond(nom="Dressmond", ps=1500, ps0=1500, pa=pa_max, groupe="A", classe=1,
-                      generation=4, rang=1, vitalite=10, valeur_attaque=30,
-                      initiative=4, infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                      stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                      fuite=None,
-                      valeur_attaque0=30, initiative0=4, niveau=0, mode=False, conso=0, drogue=2, elimination_virus=0)
+        global poches
+        poches = [[1, "Bureau", "B", 0, 1, ""], [1, "Frigo", "B", 0, 0, ""], [2, "Frigo", "B", 0, 0, ""],
+                  [3, "Frigo", "B", 0, 0, ""], [4, "Frigo", "B", 0, 0, ""], [1, "Frigo", "A", 0, 0, ""],
+                  [2, "Frigo", "A", 0, 0, ""], [1, "Frigo", "O", 0, 0, ""], [1, "Alec", "O", 1, 0, ""],
+                  [2, "Alec", "O", 2, 0, ""]]
+        # poches de sang : 
+            # Numéro dans la localisation
+            # Localisation
+            # Groupe
+            # Contaminé par le virus (2 ou 1 ou 0) (2 est la dose super forte d'Alec)
+            # Contaminé par la drogue (1 ou 0)
+            # Autres notes, commentaires, ...
 
-Loup = loup(nom="Loup", ps=0, ps0=0, pa=0, groupe="AB", classe=4,
-            generation=4, rang=4, vitalite=0, valeur_attaque=int(0 / 10), initiative=int(0 / 10),
-            infecte=True, date_infection=None, date_mort=None, force_infection=0,
-            stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
-            existe=False)
+        global Lance_pouvoirs
+        Lance_pouvoirs = True
+        # La lance possède ses pouvoirs
 
-Serviteurs = pnj(nom="Serviteurs", ps=400, ps0=400, pa=pa_max, groupe="B", classe=0,
-                 generation=6, rang=6, vitalite=3, valeur_attaque=3, initiative=3,
-                 infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                 stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                 fuite=None,
-                 ps_indiv=30, combat=False)
+        global temps_debut
+        temps_debut = time.localtime()
+        global t
+        t = time.mktime(temps_debut)
+        global heure_debut
+        heure_debut = temps_debut.tm_hour
+        global minute_debut
+        minute_debut = temps_debut.tm_min
 
-Gardes = pnj(nom="Gardes", ps=750, ps0=750, pa=pa_max, groupe="B", classe=2,
-             generation=6, rang=6, vitalite=5, valeur_attaque=5, initiative=5,
-             infecte=False, date_infection=None, date_mort=None, force_infection=0,
-             stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-             fuite=None,
-             ps_indiv=50, combat=False)
-
-Demis = pnj(nom="Demis", ps=850, ps0=550, pa=pa_max, groupe="B", classe=0.5,
-            generation=7, rang=7, vitalite=2, valeur_attaque=3, initiative=3,
-            infecte=False, date_infection=None, date_mort=None, force_infection=0,
-            stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
-            ps_indiv=17, combat=False)
-
-Section1 = pnj(nom="Section 1", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1,
-               generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
-               infecte=False, date_infection=None, date_mort=None, force_infection=0,
-               stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-               fuite=None,
-               ps_indiv=30, combat=False)
-
-Section2 = pnj(nom="Section 2", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1,
-               generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
-               infecte=False, date_infection=None, date_mort=None, force_infection=0,
-               stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-               fuite=None,
-               ps_indiv=30, combat=False)
-
-Section3 = pnj(nom="Section 3", ps=300, ps0=300, pa=pa_max, groupe="B", classe=1,
-               generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
-               infecte=False, date_infection=None, date_mort=None, force_infection=0,
-               stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-               fuite=None,
-               ps_indiv=30, combat=False)
-
-liste_pnj = [Serviteurs, Gardes, Demis, Section1, Section2, Section3]
-
-pnj_temp_num = 0
-# Variable pour détacher un pnj
-
-poches = [[1, "Bureau", "B", 0, 1, ""], [1, "Frigo", "B", 0, 0, ""], [2, "Frigo", "B", 0, 0, ""],
-          [3, "Frigo", "B", 0, 0, ""], [4, "Frigo", "B", 0, 0, ""], [1, "Frigo", "A", 0, 0, ""],
-          [2, "Frigo", "A", 0, 0, ""], [1, "Frigo", "O", 0, 0, ""], [1, "Alec", "O", 1, 0, ""],
-          [2, "Alec", "O", 2, 0, ""]]
-# poches de sang : 
-# Numéro dans la localisation
-# Localisation
-# Groupe
-# Contaminé par le virus (2 ou 1 ou 0) (2 est la dose super forte d'Alec)
-# Contaminé par la drogue (1 ou 0)
-# Autres notes, commentaires, ...
-
-Lance_pouvoirs = True
-# La lance possède ses pouvoirs
-
-
-
-temps_debut = time.localtime()
-t = time.mktime(temps_debut)
-heure_debut = temps_debut.tm_hour
-minute_debut = temps_debut.tm_min
-
-print("Début de la murder : " + heure_debut.__str__() + ":" + minute_debut.__str__())
-
-""" Fin de l'initialisation """
-
-
-# Amélioration = Faire une fonction intermédiaire qui peut faire un test de
-# réalisation en proba
-
-
-# Faire ne pas marcher des trucs type balles en argent sur pnjs...
+        print("Début de la murder : " + heure_debut.__str__() + ":" + minute_debut.__str__())
+    
+    else:
+        print("Échec de l'initialisation")
