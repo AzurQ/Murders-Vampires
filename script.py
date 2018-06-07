@@ -653,8 +653,11 @@ class vampire:
 
             if self.nom == "Vania":
                 print("Le virus n'aura aucun effet sur Vania")
-            elif (self.nom == "Alec") and (force != 2):
-                print("Le virus n'aura aucun effet sur Alec")
+            elif isinstance(self, demi) and (force != 2):
+                print("Le virus n'aura aucun effet sur " + self.nom)
+            elif isinstance(self, pnj) :
+                print(self.nom + " devient infecté par le virus avec une force de " + str(force))
+                print("MJ : En considérer les effets au cas par cas")
             else:
                 if self.nom == "Crowe":
                     duree_propagation = 4
