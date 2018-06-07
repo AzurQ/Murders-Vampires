@@ -1130,7 +1130,7 @@ class derniere_main(vampire):
                     influence != "action"):
             raise erreur("Erreur d'entrée du type d'influence")
 
-        self.depense(ps=ps)
+        self.depense(ps = ps)
 
         chance = (ps / 10) * exp(cible.generation / 3) / 2
 
@@ -1168,7 +1168,7 @@ class derniere_main(vampire):
         if ps > 5:
             raise erreur("Le maximum de PS est de 5 pour ce pouvoir")
 
-        self.depense(ps=ps)
+        self.depense(ps = ps)
         self.arme_valeur = ps
         print("Crowe fait apparaître une arme de sang")
 
@@ -1177,7 +1177,7 @@ class derniere_main(vampire):
         if ps > 5:
             raise erreur("Le maximum de PS est de 5 pour ce pouvoir")
 
-        self.depense(ps=ps)
+        self.depense(ps = ps)
 
         cible.lien = ps
         print("Des liens de sang restreignent maintenant " + cible.nom)
@@ -1197,7 +1197,7 @@ class mezsaros(vampire):
         if ps < 10:
             raise erreur("Le coût minimum est de 10 PS")
 
-        self.depense(ps=ps)
+        self.depense(ps = ps)
 
         if Loup.existe:
             print("Vania a déjà invoqué un loup")
@@ -1275,7 +1275,7 @@ class simonis(vampire):
         self.degats(cible, dommages_tot)
 
     # Regard froid d'Aleister
-    def regard(self, cible, ps=False):
+    def regard(self, cible, ps = False):
         # ps permet de dire si Aleister paye avec des ps
 
         if cible.generation == 0:
@@ -1293,25 +1293,25 @@ class simonis(vampire):
             cout = 1
 
         if ps:
-            self.depense(ps=cout)
+            self.depense(ps = cout)
             print("La capacité est efficace")
         else:
-            self.depense(pa=cout)
+            self.depense(pa = cout)
             print("La capacité est efficace")
 
     # Aleister se lie avec un objet
-    def link(self, objet, ps=False):
+    def link(self, objet, ps = False):
         # ps permet de dire si Aleister paye avec des ps
         cout = 1 + (1 + len(self.transexistence)) ** 2
 
         if ps:
-            self.depense(ps=cout)
+            self.depense(ps = cout)
             self.transexistence.append(objet)
             print("Aleister s'est maintenant lié avec l'objet : " + objet)
 
 
         else:
-            self.depense(pa=cout)
+            self.depense(pa = cout)
             self.transexistence.append(objet)
             print("Aleister s'est maintenant lié avec l'objet : " + objet)
 
@@ -1420,23 +1420,23 @@ class pnj(vampire):
         # nombre est le nombre de pnj qu'on souhaite détacher
 
         new_ps = nombre * self.ps_indiv
-        self.depense(ps=new_ps)
+        self.depense(ps = new_ps)
 
         global liste_pnj
         liste_pnj.append(
-                pnj(nom=nom, ps=new_ps, ps0=new_ps, pa=self.pa,
-                   groupe=self.groupe, classe=self.classe,
-                   generation=self.generation, rang=self.rang,
-                   vitalite=self.vitalite, valeur_attaque=self.valeur_attaque,
-                   initiative=self.initiative, infecte=self.infecte,
-                   date_infection=self.date_infection,
-                   date_mort=self.date_mort,
-                   force_infection=self.force_infection, stun=self.stun,
-                   stun_raison=self.stun_raison,
-                   etourdi=self.etourdi, etourdi_tour=self.etourdi_tour,
-                   lien=self.lien, maudit=self.maudit,
-                   date_reveil=self.date_reveil, fuite = self.fuite,
-                   ps_indiv=self.ps_indiv, combat=self.combat)
+                pnj(nom = nom, ps = new_ps, ps0 = new_ps, pa = self.pa,
+                   groupe = self.groupe, classe = self.classe,
+                   generation = self.generation, rang = self.rang,
+                   vitalite = self.vitalite, valeur_attaque = self.valeur_attaque,
+                   initiative = self.initiative, infecte = self.infecte,
+                   date_infection = self.date_infection,
+                   date_mort = self.date_mort,
+                   force_infection = self.force_infection, stun = self.stun,
+                   stun_raison = self.stun_raison,
+                   etourdi = self.etourdi, etourdi_tour = self.etourdi_tour,
+                   lien = self.lien, maudit = self.maudit,
+                   date_reveil = self.date_reveil, fuite = self.fuite,
+                   ps_indiv = self.ps_indiv, combat = self.combat)
                 )
 
         globals()[nom] = liste_pnj[-1]
@@ -1823,7 +1823,7 @@ def initialisation():
         pa_max = 20
 
         global Vania
-        Vania = mezsaros(nom="Vania", ps=500, ps0=500, pa=pa_max, groupe="AB", classe=4,
+        Vania = mezsaros(nom = "Vania", ps=500, ps0=500, pa=pa_max, groupe="AB", classe=4,
                          generation=3, rang=1, vitalite=5, valeur_attaque=4, initiative=15,
                          infecte=True, date_infection=None, date_mort=None, force_infection=0, stun=0,
                          stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None)
