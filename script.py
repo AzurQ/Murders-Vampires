@@ -732,7 +732,7 @@ class vampire:
 
 
     # Utiliser la Lance sur une cible
-    def lance(self, cible, manche = False):
+    def lance(self, cible, manche = True):
         global Lance_pouvoirs
         if Lance_pouvoirs:
             if self.nom == cible.nom:
