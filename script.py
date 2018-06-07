@@ -550,6 +550,10 @@ class vampire:
             self.virus(poche[3])
         if poche[4] != 0:
             self.take_drogue()
+            
+        # Remarques éventuelles sur la poche
+        if bool(poche[-1]):
+            print("Remarques sur la poche : " + poche[-1])
 
 
     # Effets de la drogue    
