@@ -1823,103 +1823,103 @@ def initialisation():
         pa_max = 20
 
         global Vania
-        Vania = mezsaros(nom = "Vania", ps=500, ps0=500, pa=pa_max, groupe="AB", classe=4,
-                         generation=3, rang=1, vitalite=5, valeur_attaque=4, initiative=15,
-                         infecte=True, date_infection=None, date_mort=None, force_infection=0, stun=0,
-                         stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None)
+        Vania = mezsaros(nom  =  "Vania", ps = 500, ps0 = 500, pa = pa_max, groupe = "AB", classe = 4,
+                         generation = 3, rang = 1, vitalite = 5, valeur_attaque = 4, initiative = 15,
+                         infecte = True, date_infection = None, date_mort = None, force_infection = 0, stun = 0,
+                         stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None, fuite = None)
 
         global Alec
-        Alec = demi(nom="Alec", ps=30, ps0=30, pa=pa_max, groupe="B", classe=0.5,
-                    generation=7, rang=7, vitalite=1, valeur_attaque=4, initiative=2,
-                    infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                    stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
-                    munitions=9, batterie=300, switch=False, prelevements=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        Alec = demi(nom = "Alec", ps = 30, ps0 = 30, pa = pa_max, groupe = "B", classe = 0.5,
+                    generation = 7, rang = 7, vitalite = 1, valeur_attaque = 4, initiative = 2,
+                    infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                    stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None, fuite = None,
+                    munitions = 9, batterie = 300, switch = False, prelevements = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
         global Crowe
-        Crowe = derniere_main(nom="Crowe", ps=80, ps0=80, pa=pa_max, groupe="O", classe=4,
-                              generation=5, rang=5, vitalite=3, valeur_attaque=8, initiative=10,
-                              infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                              stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                              fuite=None,
-                              arme_valeur=None)
+        Crowe = derniere_main(nom = "Crowe", ps = 80, ps0 = 80, pa = pa_max, groupe = "O", classe = 4,
+                              generation = 5, rang = 5, vitalite = 3, valeur_attaque = 8, initiative = 10,
+                              infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                              stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                              fuite = None,
+                              arme_valeur = None)
 
         global Aleister
-        Aleister = simonis(nom="Aleister", ps=130, ps0=130, pa=pa_max, groupe="AB", classe=0,
-                           generation=4, rang=4, vitalite=4, valeur_attaque=8, initiative=6,
-                           infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                           stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                           fuite=None,
-                           transexistence=[], target=None)
+        Aleister = simonis(nom = "Aleister", ps = 130, ps0 = 130, pa = pa_max, groupe = "AB", classe = 0,
+                           generation = 4, rang = 4, vitalite = 4, valeur_attaque = 8, initiative = 6,
+                           infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                           stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                           fuite = None,
+                           transexistence = [], target = None)
 
         global Min
-        Min = chrysalide(nom="Min", ps=150, ps0=150, pa=pa_max, groupe="O", classe=2,
-                         generation=5, rang=5, vitalite=5, valeur_attaque=6, initiative=8,
-                         infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                         stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                         fuite=None, antidote=True,
-                         c4_est=True, c4_ouest=True, c4_vlad=True)
+        Min = chrysalide(nom = "Min", ps = 150, ps0 = 150, pa = pa_max, groupe = "O", classe = 2,
+                         generation = 5, rang = 5, vitalite = 5, valeur_attaque = 6, initiative = 8,
+                         infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                         stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                         fuite = None, antidote = True,
+                         c4_est = True, c4_ouest = True, c4_vlad = True)
 
         global Dressmond
-        Dressmond = dressmond(nom="Dressmond", ps=1500, ps0=1500, pa=pa_max, groupe="A", classe=1,
-                              generation=4, rang=1, vitalite=10, valeur_attaque=30,
-                              initiative=4, infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                              stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                              fuite=None,
-                              valeur_attaque0=30, initiative0=4, niveau=0, mode=False, conso=0, drogue=2)
+        Dressmond = dressmond(nom = "Dressmond", ps = 1500, ps0 = 1500, pa = pa_max, groupe = "A", classe = 1,
+                              generation = 4, rang = 1, vitalite = 10, valeur_attaque = 30,
+                              initiative = 4, infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                              stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                              fuite = None,
+                              valeur_attaque0 = 30, initiative0 = 4, niveau = 0, mode = False, conso = 0, drogue = 2)
 
         global Loup
-        Loup = loup(nom="Loup", ps=0, ps0=0, pa=0, groupe="AB", classe=4,
-                    generation=4, rang=4, vitalite=0, valeur_attaque=int(0 / 10), initiative=int(0 / 10),
-                    infecte=True, date_infection=None, date_mort=None, force_infection=0,
-                    stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
-                    existe=False)
+        Loup = loup(nom = "Loup", ps = 0, ps0 = 0, pa = 0, groupe = "AB", classe = 4,
+                    generation = 4, rang = 4, vitalite = 0, valeur_attaque = int(0 / 10), initiative = int(0 / 10),
+                    infecte = True, date_infection = None, date_mort = None, force_infection = 0,
+                    stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None, fuite = None,
+                    existe = False)
 
         global Serviteurs
-        Serviteurs = pnj(nom="Serviteurs", ps=210, ps0=210, pa=pa_max, groupe="B", classe=0,
-                         generation=6, rang=6, vitalite=3, valeur_attaque=3, initiative=3,
-                         infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                         stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                         fuite=None,
-                         ps_indiv=30, combat=False)
+        Serviteurs = pnj(nom = "Serviteurs", ps = 210, ps0 = 210, pa = pa_max, groupe = "B", classe = 0,
+                         generation = 6, rang = 6, vitalite = 3, valeur_attaque = 3, initiative = 3,
+                         infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                         stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                         fuite = None,
+                         ps_indiv = 30, combat = False)
 
         global Gardes
-        Gardes = pnj(nom="Gardes", ps=750, ps0=750, pa=pa_max, groupe="AB", classe=2,
-                     generation=6, rang=6, vitalite=5, valeur_attaque=5, initiative=5,
-                     infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                     stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                     fuite=None,
-                     ps_indiv=50, combat=False)
+        Gardes = pnj(nom = "Gardes", ps = 750, ps0 = 750, pa = pa_max, groupe = "AB", classe = 2,
+                     generation = 6, rang = 6, vitalite = 5, valeur_attaque = 5, initiative = 5,
+                     infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                     stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                     fuite = None,
+                     ps_indiv = 50, combat = False)
 
         global Demis
-        Demis = pnj(nom="Demis", ps=850, ps0=550, pa=pa_max, groupe="A", classe=0.5,
-                    generation=7, rang=7, vitalite=2, valeur_attaque=3, initiative=3,
-                    infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                    stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None, fuite=None,
-                    ps_indiv=17, combat=False)
+        Demis = pnj(nom = "Demis", ps = 850, ps0 = 550, pa = pa_max, groupe = "A", classe = 0.5,
+                    generation = 7, rang = 7, vitalite = 2, valeur_attaque = 3, initiative = 3,
+                    infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                    stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None, fuite = None,
+                    ps_indiv = 17, combat = False)
 
         global Section1
-        Section1 = pnj(nom="Section 1", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
-                       generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
-                       infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                       stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                       fuite=None,
-                       ps_indiv=30, combat=False)
+        Section1 = pnj(nom = "Section 1", ps = 300, ps0 = 300, pa = pa_max, groupe = "AB", classe = 1,
+                       generation = 7, rang = 7, vitalite = 3, valeur_attaque = 7, initiative = 9,
+                       infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                       stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                       fuite = None,
+                       ps_indiv = 30, combat = False)
 
         global Section2
-        Section2 = pnj(nom="Section 2", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
-                       generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
-                       infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                       stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                       fuite=None,
-                       ps_indiv=30, combat=False)
+        Section2 = pnj(nom = "Section 2", ps = 300, ps0 = 300, pa = pa_max, groupe = "AB", classe = 1,
+                       generation = 7, rang = 7, vitalite = 3, valeur_attaque = 7, initiative = 9,
+                       infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                       stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                       fuite = None,
+                       ps_indiv = 30, combat = False)
 
         global Section3
-        Section3 = pnj(nom="Section 3", ps=300, ps0=300, pa=pa_max, groupe="AB", classe=1,
-                       generation=7, rang=7, vitalite=3, valeur_attaque=7, initiative=9,
-                       infecte=False, date_infection=None, date_mort=None, force_infection=0,
-                       stun=0, stun_raison=None, etourdi=0, etourdi_tour=False, lien=0, maudit=False, date_reveil=None,
-                       fuite=None,
-                       ps_indiv=30, combat=False)
+        Section3 = pnj(nom = "Section 3", ps = 300, ps0 = 300, pa = pa_max, groupe = "AB", classe = 1,
+                       generation = 7, rang = 7, vitalite = 3, valeur_attaque = 7, initiative = 9,
+                       infecte = False, date_infection = None, date_mort = None, force_infection = 0,
+                       stun = 0, stun_raison = None, etourdi = 0, etourdi_tour = False, lien = 0, maudit = False, date_reveil = None,
+                       fuite = None,
+                       ps_indiv = 30, combat = False)
 
         liste_pnj = [Serviteurs, Gardes, Demis, Section1, Section2, Section3]
 
