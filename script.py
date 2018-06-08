@@ -1723,6 +1723,42 @@ def multiplicateur(proximite):
         raise erreur("La classe de proximité ne peut être que 1, 2 ou 3")
 
 
+# Faire une ellipse temporelle
+def timeskip(minutes):
+    liste_attente = [Vania, Alec, Crowe, Aleister, Min, Dressmond] + liste_pnj
+    if Loup.existe :
+        liste_attente = liste_attente + [Loup]
+     
+    # Tant que des personnages ont encore des conditions :
+    while minutes > 0 and len(liste_attente) > 0 :
+        initiative()
+        decalage = 0
+        for i in range(len(liste_attente)):
+            perso = liste_attente[i - decalage]
+            
+            # initiative() permet de gérer toutes les conditions sauf la fuite
+            if perso.fuite is not None:
+                if perso.fuite == 1:
+                    perso.fuite = None
+                    print(perso.nom + " a réussi à fuir")
+                    if isinstance(perso, pnj):
+                        perso.desengage()
+                else:
+                    perso.fuite -= 1
+                    print(perso.nom + " essaye de fuir, ses actions sont limitées à cette fin")
+            
+            if perso.etourdi == 0 and perso.stun == 0 and perso.fuite == None:
+                liste_attente.remove(perso)
+                decalage += 1
+                
+        minutes -= 12
+        
+    if len(liste_attente) > 0 :
+        print("Personnages encore affectés par une condition :")
+        for perso in liste_attente:
+            print(perso.nom)
+                
+            
 # Faire une sauvegarde des objets
 def save():
     try :
@@ -1750,9 +1786,9 @@ def save():
             pickle.dump(Lance_pouvoirs, f, pickle.HIGHEST_PROTOCOL)
         print("Données sauvegardées")
     except :
-        print("Aucune données à sauvegarder")  
+        print("Aucune données à sauvegarder")
         
-
+        
 # Charger une sauvegarde des objets
 def load():
     demande = input("Voulez-vous charger la dernière sauvegarde des objets ? ")
@@ -1797,6 +1833,7 @@ def load():
             for i in range(6, len(liste_pnj)):
                 pnj = liste_pnj[i]
                 globals()[pnj.nom] = pnj
+                
                 
 # Initialiser la murder
 def initialisation():
@@ -1951,27 +1988,3 @@ def initialisation():
     
     else:
         print("Échec de l'initialisation")
-
-
-
-# Faire récuépration des pnjs de la liste en objet quand on fait un load()
-
-
-# Amélioration = Faire une fonction intermédiaire qui peut faire un test de
-# réalisation en proba
-
-
-# Faire ne pas marcher des trucs type balles en argent sur pnjs...
-
-
-   
-# Faire une fonction de documentation sur chaque fonction qui explique comment l'utiliser
-    
-# Implémenter l'overkill de la fonction aoe de Dressmond
-         
-# Faire fonction d'initialisation (pour ne pas avoir à toucher au script) 
-
-# Fuite -> faire décompte. Faire attention au tour 0/tour 1 ?
-
-# faire fonction pour faire passer le temps .... ()
-
