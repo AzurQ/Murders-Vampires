@@ -1723,7 +1723,6 @@ def multiplicateur(proximite):
         raise erreur("La classe de proximité ne peut être que 1, 2 ou 3")
 
 
-
 # Faire une sauvegarde des objets
 def save():
     try :
@@ -1751,8 +1750,7 @@ def save():
             pickle.dump(Lance_pouvoirs, f, pickle.HIGHEST_PROTOCOL)
         print("Données sauvegardées")
     except :
-        print("Aucune données à sauvegarder")
-        
+        print("Aucune données à sauvegarder")  
         
 
 # Charger une sauvegarde des objets
