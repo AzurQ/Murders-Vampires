@@ -1751,7 +1751,7 @@ def timeskip(minutes):
                 liste_attente.remove(perso)
                 decalage += 1
                 
-        minutes -= 12
+        minutes -= 0.2
         
     if len(liste_attente) > 0 :
         print("Personnages encore affectés par une condition :")
