@@ -9,5 +9,12 @@ Do not read any file on this repository if you have not played this game as they
 ## About 
 "[Murder](https://en.wikipedia.org/wiki/Murder_mystery_game)" is short for "Interactive Murder Mystery Game" in French, a specific style of Live-Action Role-Playing.
 
-This project is an IMMG I created with for theme vampires. The game is not yet published but as for now, I use this repository to develop the python script used by the GM to manage players' stats and actions.
+This project is an IMMG I created with for theme vampires. The game has been published, and is available at the following link: 
+
+Please, refer to this website to find information on this game before checking this repository. 
+
+This repository hosts the python script used by GM to manage game events and player's actions and stats.
+
+> Emmanuel Peyronnet - All Rights Reserved (2018)
+
 
