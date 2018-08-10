@@ -11,7 +11,7 @@ Do not read any file on this repository if you have not played this game as they
 
 This project is an IMMG I created with for theme vampires. The game has been published, and is available at the following link: 
 
-Please, refer to this website to find information on this game before checking this repository. 
+Please, refer to this website or my [personal blog](https://vampiretestament.wordpress.com/murders-vampires/) to find information on this game before checking this repository. 
 
 This repository hosts the python script used by GM to manage game events and player's actions and stats.
 
