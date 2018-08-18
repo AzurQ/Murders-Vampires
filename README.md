@@ -1,6 +1,6 @@
-# Murder Vampires
+# Murders Vampires : DawnFall Chronicles
 
-> Dusk And Dawn, No One Rises, And Vampires Fall - As They Fade, Hopes Remain, Strong Still Above All
+> Murder I : Dusk And Dawn, No One Rises, And Vampires Fall - As They Fade, Hopes Remain, Strong Still Above All
 
 ## Disclaimer 
 
