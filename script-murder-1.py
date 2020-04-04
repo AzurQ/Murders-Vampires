@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Feb 28 22:15:32 2018
-Version 3.2.0
+Version 3.2.1
 @author: Emmanuel Peyronnet (AzurQ)
 
 """
@@ -117,7 +117,7 @@ class vampire:
                                    max(np.random.binomial(self.valeur_attaque, p), self.arme_valeur))
 
             # Cas si Vania attaque avec surprise
-            if isinstance(self, mezsaros) and surprise:
+            elif isinstance(self, mezsaros) and surprise:
                 if avantage == 0:
                     dommages = np.random.binomial(self.valeur_attaque*self.valeur_attaque, p)
                 elif avantage > 0:
@@ -127,12 +127,13 @@ class vampire:
 
 
             # Cas usuel
-            elif avantage == 0:
-                dommages = np.random.binomial(self.valeur_attaque, p)
-            elif avantage > 0:
-                dommages = max(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
-            elif avantage < 0:
-                dommages = min(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
+            else:
+                if avantage == 0:
+                    dommages = np.random.binomial(self.valeur_attaque, p)
+                elif avantage > 0:
+                    dommages = max(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
+                elif avantage < 0:
+                    dommages = min(np.random.binomial(self.valeur_attaque, p), np.random.binomial(self.valeur_attaque, p))
 
             dommages_tot += dommages
 
@@ -1709,7 +1710,7 @@ def derelat(v):
     return min(v, beta*c)
 
 
-# Transformer la proximité en multiplicateur de dégâts causé par la disance
+# Transformer la proximité en multiplicateur de dégâts causé par la distance
     # de l'AoE de Dressmond
 def multiplicateur(proximite):
     if proximite == 1:
@@ -1959,8 +1960,8 @@ def initialisation():
 
         global poches
         poches = [[1, "Bureau", "B", 0, 1, ""], [1, "Frigo", "B", 0, 0, ""], [2, "Frigo", "B", 0, 0, ""],
-                  [3, "Frigo", "B", 0, 0, ""], [4, "Frigo", "B", 0, 0, ""], [1, "Frigo", "A", 0, 0, ""],
-                  [2, "Frigo", "A", 0, 0, ""], [1, "Frigo", "O", 0, 0, ""], [1, "Alec", "O", 1, 0, ""],
+                  [3, "Frigo", "B", 0, 0, ""], [4, "Frigo", "B", 0, 0, ""], [1, "Frigo", "O", 0, 0, ""],
+                  [2, "Frigo", "O", 0, 0, ""], [1, "Frigo", "AB", 0, 0, ""], [1, "Alec", "O", 1, 0, ""],
                   [2, "Alec", "O", 2, 0, ""], [1, "Vania", "AB", 0, 0, ""], [2, "Vania", "AB", 0, 0, ""],
                   [3, "Vania", "AB", 0, 0, ""], [4, "Vania", "AB", 0, 0, ""], [5, "Vania", "AB", 0, 0, ""]]
         # poches de sang :
